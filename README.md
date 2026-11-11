@@ -9,7 +9,7 @@ One Gradle project, one Android module per extension:
 
 | Folder | What | Status |
 |---|---|---|
-| [`sensor-battery/`](sensor-battery/) | **Sensor Juice**: battery overview of every paired sensor, before and after the ride. See [PLAN.md](sensor-battery/PLAN.md) and [mockup.html](sensor-battery/mockup.html) | Plan done |
+| [`device-juice/`](device-juice/) | **Device Juice**: battery overview of every paired device, before and after the ride. See [PLAN.md](device-juice/PLAN.md) and [mockup.html](device-juice/mockup.html) | Plan done |
 | `power-zone-bar/` | Apple Watch–style power zone bar | Not started |
 | `common/` | Shared UI and karoo-ext helpers | Not started |
 | `.github/workflows/` | Builds APKs into GitHub releases | Not started |

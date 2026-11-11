@@ -1,4 +1,4 @@
-<title>Sensor Juice</title>
+<title>Device Juice</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700;800&family=Roboto:wght@400;500;700&display=swap">
@@ -125,8 +125,8 @@ table.scale { border-collapse: collapse; font-size: 14px; min-width: 640px; }
 <div class="wrap">
   <header>
     <span class="eyebrow">Karoo 3 extension · design concepts v2</span>
-    <h1>Sensor Juice</h1>
-    <p class="lede">Battery overview for every paired sensor, used mainly before and after the ride. Screens are drawn at real Karoo 3 size (480×800) in dark and light ride modes. Low batteries come first and get large cards; healthy ones fold into one compact block. Sensors the Karoo only reports as a level (New, Good, OK, Low, Critical) get a 5-segment gauge. Sensors with a real percentage get a continuous bar and the number. All values are example data.</p>
+    <h1>Device Juice</h1>
+    <p class="lede">Battery overview for every paired device, used mainly before and after the ride. Screens are drawn at real Karoo 3 size (480×800) in dark and light ride modes. Low batteries come first and get large cards; healthy ones fold into one compact block. Sensors the Karoo only reports as a level (New, Good, OK, Low, Critical) get a 5-segment gauge. Sensors with a real percentage get a continuous bar and the number. All values are example data.</p>
   </header>
 
   <section>
@@ -247,8 +247,8 @@ const PRE_OK = [
 function pre(mode) {
   return `<div class="stage"><div class="k screen ${mode}">
     <div class="sbar"><span>07:42</span><span>Karoo 46 %</span></div>
-    <div class="hd"><b>Battery check</b><span>8 sensors · Road bike profile</span></div>
-    <div class="verdict b-red"><span class="badge">${BADGE.red}</span><div><b>1 sensor won't last the ride</b><span>Assioma R is under 15 %. Two more need charging soon.</span></div></div>
+    <div class="hd"><b>Battery check</b><span>8 devices · Road bike profile</span></div>
+    <div class="verdict b-red"><span class="badge">${BADGE.red}</span><div><b>1 device won't last the ride</b><span>Assioma R is under 15 %. Two more need charging soon.</span></div></div>
     <div class="body">
       <div class="grp">Needs attention · 3</div>
       ${PRE_ATTN.map(card).join('')}
@@ -298,7 +298,7 @@ function strip(mode) {
     <span class="cap">Strip, ${mode === 'light' ? 'light' : 'dark'} · empty while all is fine</span></div>`;
 }
 function notif(el) {
-  el.innerHTML = `<div class="ico">${ICON.plug}</div><div class="h">Sensor Juice · ride saved</div>
+  el.innerHTML = `<div class="ico">${ICON.plug}</div><div class="h">Device Juice · ride saved</div>
     <b>Charge Assioma R tonight</b><div class="s">2 more before your next ride</div><div class="act">Open</div>`;
 }
 

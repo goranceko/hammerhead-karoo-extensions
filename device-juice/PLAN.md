@@ -1,6 +1,6 @@
-# Sensor Juice: Karoo 3 sensor battery extension (investigation + design plan)
+# Device Juice: Karoo 3 device battery extension (investigation + design plan)
 
-Working name: **Sensor Juice**. A karoo-ext extension that gives a clear overview of the battery state of every paired sensor, **mainly before and after a ride**. Covered devices: Shimano Di2 (per component), Garmin Varia, Favero Assioma (L + R), HR strap, and the Karoo itself. A compact in-ride data field is a secondary feature.
+Name: **Device Juice**. A karoo-ext extension that gives a clear overview of the battery state of every paired device, **mainly before and after a ride**. Covered devices: Shimano Di2 (per component), Garmin Varia, Favero Assioma (L + R), HR strap, and the Karoo itself. A compact in-ride data field is a secondary feature.
 
 Mockup: [`mockup.html`](./mockup.html). It shows the pre-ride and post-ride overview screens at 480×800 in dark and light ride modes, plus notifications, in-ride fields and the colour scale.
 
@@ -8,12 +8,17 @@ Status labels used throughout:
 - **Confirmed**: read in source, with `file:line`. karoo-ext paths are relative to `hammerheadnav/karoo-ext` at commit `f79f103` (lib version 1.1.9, `lib/build.gradle.kts:15`, `minSdk = 23` at `:28`). `KE/` = `lib/src/main/kotlin/io/hammerhead/karooext/`. Other repos are named in the reference.
 - **Hypothesis**: inferred from protocol knowledge, manufacturer specs from memory, or naming. Not verified on a device.
 
+Decisions (11.11.2026):
+- **Name:** Device Juice. User-facing text says "devices", not "sensors" (the list includes the Karoo).
+- **Green band** starts at 50 % (section 4).
+- **Di2 is paired through Ki2.** Real Di2 % depends on open question 7. If streaming the Ki2 data type works in milestone 0, `Ki2Source` moves from v2 to v1; if not, Di2 shows the level Ki2 passes to Karoo.
+
 ---
 
 ## TLDR
 
 1. **The SDK does not give sensor percentages.** Every external sensor is reported as one of 5 `BatteryStatus` levels (NEW / GOOD / OK / LOW / CRITICAL, plus INVALID). Only the Karoo's own battery is a real percentage. **Confirmed**: `KE/models/BatteryStatus.kt:28-48`, `KE/models/KarooEvent.kt:556-568`, `KE/models/DeviceEvent.kt:43-44`. The Saftladen author found the same (`hamann/karoo-saftladen` README.md:97-99).
-2. **One SDK event lists all sensors.** `SavedDevices` (since 1.1.5) gives every paired sensor's name, connection type, enabled flag, last battery level, the time of that reading, and a per-component map for multi-part sensors such as Di2. **Confirmed**: `KE/models/KarooEvent.kt:493-611`.
+2. **One SDK event lists all sensors.** `SavedDevices` (since 1.1.5) gives every paired device's name, connection type, enabled flag, last battery level, the time of that reading, and a per-component map for multi-part sensors such as Di2. **Confirmed**: `KE/models/KarooEvent.kt:493-611`.
 3. **Pre-ride and post-ride flows are possible with SDK hooks.** The extension service sees `RideState` transitions (Idle / Recording / Paused). It can post a Control Center `SystemNotification` whose `actionIntent` opens our overview screen. It can show an `InRideAlert`. **Confirmed** (section 3.2). There is no event for "ride about to start", so pre-ride uses the app itself, a ride page, and recording start.
 4. **Recommended approach:** v1 = full-screen Battery overview app (pre/post ride) + ride-end notification + recording-start alert + compact in-ride field, all fed by `SavedDevices` + the Karoo `BATTERY_PERCENT` stream. Colours use 4 bands, each paired with an icon and a word. Coarse levels map onto the bands and are drawn as levels, never as made-up percentages. Charging advice is rule-based. "Rides left" is learned locally and labelled as an estimate. v2 adds real percentages from Ki2 (Di2) and from direct BLE reads.
 5. **Biggest open question:** does `SavedDevices` update during or right after a ride, or only when the device list changes? Milestone 0 tests this on a real Karoo.
@@ -99,7 +104,7 @@ Prior art (GitHub topic `karoo-ext`, `timklge/awesome-karoo` README):
 | App in Karoo menu | Sideloaded apps with a launcher activity appear in the Karoo app list | **Hypothesis** (expected, as for the SDK sample) |
 
 Pre-ride strategy, best first:
-1. If `ActiveRidePage` fires while Idle: post a `SystemNotification` "1 sensor won't last the ride · Open" once per session.
+1. If `ActiveRidePage` fires while Idle: post a `SystemNotification` "1 device won't last the ride · Open" once per session.
 2. On Idle → Recording: `InRideAlert` if anything is red or orange.
 3. Rider adds the full-page overview field to the first page of their ride profile.
 4. Rider opens the app from the menu.
@@ -107,7 +112,7 @@ Pre-ride strategy, best first:
 ### 3.3 Overview screen layout
 
 See mockup, "Before the ride" and "After the ride".
-- **Verdict line** answers "can I ride?": red "1 sensor won't last the ride", orange "Charge 3 devices", green "All set: 8 sensors ready".
+- **Verdict line** answers "can I ride?": red "1 device won't last the ride", orange "Charge 3 devices", green "All set: 8 devices ready".
 - **Needs attention** (red/orange/yellow) as large cards: icon, name, source line, value (level word or %), gauge, advice and estimate basis. Red cards get a tinted fill as well as the colour edge.
 - **Healthy** collapsed into a two-column block of name + mini gauge. A stale reading (not updated in 7 days) shows grey with a "last seen" note.
 - Post-ride groups by urgency ("Charge" / "Fine for now") and shows each device's drop during the ride (level change, or −N % for exact sources).
@@ -186,9 +191,9 @@ Label: "under ~7 h left · rated life". When a learned rate exists it replaces t
 ### 6.1 Module structure (follows the karoo-ext sample app layout)
 
 ```
-sensor-battery/
-  app/src/main/kotlin/…/sensorjuice/
-    SensorJuiceExtension.kt     // KarooExtension; registers data types; watches RideState
+device-juice/
+  app/src/main/kotlin/…/devicejuice/
+    DeviceJuiceExtension.kt     // KarooExtension; registers data types; watches RideState
     data/
       BatteryRepository.kt      // Flow<List<BatteryReading>>: merge, prefs, sort, band
       SavedDevicesSource.kt     // consumerFlow<SavedDevices>() → readings per device + component
@@ -265,9 +270,9 @@ If `SavedDevices` does not refresh at ride end: (a) re-subscribe after a short d
 | 2 | Di2 component keys; are shifters listed? | **Unverified** | Device test |
 | 3 | Are Assioma L and R separate entries? | **Unverified** | Device test |
 | 4 | Does `ActiveRidePage` fire while Idle (pre-ride trigger)? | **Hypothesis** | Device test |
-| 5 | Di2 paired natively or via Ki2? Would the rider switch for real %? | Open | Rider decision |
+| 5 | Di2 paired natively or via Ki2? | **Decided**: via Ki2 | none |
 | 6 | Assioma / HR strap on BLE or ANT+? Only BLE allows a real % | Open | Rider |
-| 7 | Can one extension stream another extension's data type? | **Hypothesis** | Device test |
+| 7 | Can one extension stream another extension's data type? | **Hypothesis** | Device test, milestone 0. Decides whether `Ki2Source` is v1 |
 | 8 | Rated-life values in 5.2 | **Hypothesis** | Check manufacturer specs |
 | 9 | Level-only estimates need several rides to learn and stay coarse | Known limitation | none |
 | 10 | Karoo OS updates could change `SavedDevices` contents | Risk | none |
