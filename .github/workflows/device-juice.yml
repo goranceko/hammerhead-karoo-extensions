@@ -1,0 +1,52 @@
+name: Device Juice
+
+# Pushes to main build the debug APK and run unit tests.
+# A tag like device-juice-v0.1.0 also publishes the APK + manifest.json as a GitHub release
+# (open the APK link in the Hammerhead Companion app and share it to the Karoo).
+on:
+  push:
+    branches: [main]
+    tags: ['device-juice-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # karoo-ext comes from GitHub Packages; settings.gradle.kts reads these when local.properties is absent.
+      USERNAME: ${{ github.actor }}
+      TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK and run unit tests
+        run: ./gradlew --no-daemon :device-juice:assembleDebug :device-juice:testDebugUnitTest
+
+      - name: Stage APK
+        run: cp device-juice/app/build/outputs/apk/debug/device-juice-debug.apk device-juice.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: device-juice-debug
+          path: device-juice.apk
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" device-juice.apk device-juice/app/manifest.json \
+            --title "$GITHUB_REF_NAME" --notes "Debug build of Device Juice ($GITHUB_REF_NAME)."

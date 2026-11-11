@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Milestone 0/1: no data types yet; the in-ride field arrives in milestone 6. -->
+<ExtensionInfo
+    displayName="@string/app_name"
+    icon="@drawable/ic_device_juice"
+    id="devicejuice"
+    scansDevices="false" />

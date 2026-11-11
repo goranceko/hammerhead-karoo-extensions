@@ -1,0 +1,11 @@
+{
+  "label": "Device Juice",
+  "packageName": "io.github.goranceko.devicejuice",
+  "latestApkUrl": "https://github.com/goranceko/hammerhead-karoo-extensions/releases/latest/download/device-juice.apk",
+  "latestVersion": "0.1.0",
+  "latestVersionCode": 1,
+  "developer": "goranceko",
+  "description": "Battery overview of every paired device, before and after the ride.",
+  "releaseNotes": "Milestone 0/1: device spike build.",
+  "tags": ["tools"]
+}
