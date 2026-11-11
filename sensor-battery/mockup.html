@@ -1,0 +1,310 @@
+<title>Sensor Juice</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700;800&family=Roboto:wght@400;500;700&display=swap">
+<style>
+/* Layout: a spec sheet. Quiet page chrome; the Karoo 3 screens (480x800, real pixel size) are the content, dark and light ride modes side by side. */
+:root {
+  --page: #eef0ec;
+  --ink: #1b211d;
+  --muted: #5d665f;
+  --rule: #cfd5cd;
+  --accent: #2f6f5a;
+  --f-data: "Roboto Condensed", "Roboto", "Arial Narrow", sans-serif;
+  --f-text: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; --page: #121614; --ink: #e4e9e4; --muted: #98a39b; --rule: #2a312d; --accent: #6cc3a1; }
+}
+:root[data-theme="dark"] { color-scheme: dark; --page: #121614; --ink: #e4e9e4; --muted: #98a39b; --rule: #2a312d; --accent: #6cc3a1; }
+* { box-sizing: border-box; }
+body {
+  background: var(--page); color: var(--ink); font: 15px/1.55 var(--f-text);
+  padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px; }
+header { display: flex; flex-direction: column; gap: 10px; max-width: 72ch; }
+.eyebrow { font: 600 12px/1 var(--f-text); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { font: 800 44px/1.05 var(--f-data); margin: 0; text-wrap: balance; }
+h2 { font: 700 26px/1.15 var(--f-data); margin: 0; text-wrap: balance; }
+p { margin: 0; }
+code { font-size: .92em; }
+.lede { color: var(--muted); font-size: 16px; }
+section { display: flex; flex-direction: column; gap: 18px; border-top: 1px solid var(--rule); padding-top: 24px; }
+.sec-head { display: flex; flex-direction: column; gap: 6px; max-width: 74ch; }
+.sec-head p { color: var(--muted); }
+.size { font: 600 13px/1 var(--f-data); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.pair { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+.stage { display: flex; flex-direction: column; gap: 8px; max-width: 100%; overflow-x: auto; padding: 8px; }
+.cap { font-size: 13px; color: var(--muted); }
+.scale-wrap { overflow-x: auto; }
+table.scale { border-collapse: collapse; font-size: 14px; min-width: 640px; }
+.scale th, .scale td { text-align: left; padding: 8px 14px 8px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.scale th { font: 600 12px/1.2 var(--f-text); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.scale td:first-child { white-space: nowrap; }
+.sw { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 8px; }
+
+/* ---------- Karoo surfaces: fixed per ride mode, independent of the page theme ---------- */
+.k { --bg: #0b0d0c; --fg: #f3f5f2; --sub: #a3aca5; --line: #2a302c; --card: #151917; --seg-off: #2d332f;
+     --green: #3bc46f; --yellow: #f2cf2c; --orange: #ff8a1f; --red: #ff4a3d; --grey: #7c857f; --on-red: #fff;
+     background: var(--bg); color: var(--fg); font-family: var(--f-data); border-radius: 6px; position: relative; overflow: hidden;
+     box-shadow: 0 0 0 7px #262928, 0 0 0 8px #000; flex: none; }
+.k.light { --bg: #ffffff; --fg: #0d100e; --sub: #4d5650; --line: #d7dcd6; --card: #f2f4f1; --seg-off: #dfe3dd;
+     --green: #0f8a44; --yellow: #b58900; --orange: #d45f00; --red: #cf1408; --grey: #8a938d; }
+.b-green { --c: var(--green); } .b-yellow { --c: var(--yellow); } .b-orange { --c: var(--orange); } .b-red { --c: var(--red); } .b-grey { --c: var(--grey); }
+.ico { width: 30px; height: 30px; flex: none; color: var(--fg); }
+.ico svg, .badge svg { width: 100%; height: 100%; display: block; }
+.badge { width: 26px; height: 26px; flex: none; color: var(--c); }
+
+/* level gauge: 5 segments for buckets, continuous bar for exact % */
+.seg { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; height: 12px; }
+.seg i { background: var(--seg-off); border-radius: 2px; }
+.seg i.on { background: var(--c); }
+.bar { height: 12px; background: var(--seg-off); border-radius: 2px; position: relative; overflow: hidden; }
+.bar b { position: absolute; inset: 0 auto 0 0; background: var(--c); }
+
+/* App screen 480x800 */
+.screen { width: 480px; height: 800px; display: flex; flex-direction: column; }
+.sbar { display: flex; justify-content: space-between; padding: 5px 16px; font-size: 16px; font-weight: 600; color: var(--sub); }
+.hd { padding: 2px 18px 8px; display: flex; flex-direction: column; gap: 2px; }
+.hd b { font-size: 30px; font-weight: 800; line-height: 1.05; }
+.hd span { font-size: 18px; color: var(--sub); font-weight: 500; }
+.verdict { margin: 0 14px 10px; padding: 9px 12px; border-radius: 6px; display: flex; gap: 12px; align-items: center; background: color-mix(in srgb, var(--c) 18%, var(--bg)); border: 2px solid var(--c); }
+.verdict .badge { width: 34px; height: 34px; }
+.verdict b { font-size: 23px; font-weight: 800; line-height: 1.05; display: block; }
+.verdict span { font-size: 16px; color: var(--sub); font-weight: 500; }
+.body { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 0 14px; overflow: hidden; }
+.grp { font-size: 14px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--sub); padding: 4px 4px 0; }
+.card { background: var(--card); border-radius: 6px; padding: 8px 12px; display: grid; grid-template-columns: 30px 1fr auto; gap: 4px 12px; align-items: center; border-left: 6px solid var(--c); }
+.card .nm { font-size: 22px; font-weight: 700; line-height: 1.05; }
+.card .nm small { display: block; font-size: 15px; font-weight: 500; color: var(--sub); }
+.card .lv { display: flex; align-items: center; gap: 6px; font-size: 22px; font-weight: 800; color: var(--c); text-transform: uppercase; }
+.card .gauge { grid-column: 2 / span 2; }
+.card .adv { grid-column: 2 / span 2; font-size: 17px; font-weight: 600; line-height: 1.2; }
+.card .adv em { font-style: normal; color: var(--sub); font-weight: 500; }
+.card.red { background: color-mix(in srgb, var(--red) 16%, var(--card)); }
+.healthy { background: var(--card); border-radius: 6px; padding: 6px 12px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; }
+.hrow { display: grid; grid-template-columns: 1fr 58px; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 19px; font-weight: 600; }
+.hrow:nth-last-child(-n+2) { border-bottom: 0; }
+.hrow span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hrow .seg { height: 9px; gap: 2px; }
+.hrow.stale span { color: var(--sub); }
+.hnote { grid-column: 1 / -1; font-size: 15px; color: var(--sub); padding: 2px 0 2px; font-weight: 500; }
+.foot { display: flex; gap: 10px; padding: 10px 14px 14px; }
+.btn { flex: 1; text-align: center; padding: 11px; border-radius: 6px; font-size: 21px; font-weight: 700; border: 2px solid var(--line); }
+.btn.pri { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.delta { font-size: 17px; color: var(--sub); font-weight: 600; }
+
+/* In-ride (secondary) */
+.small { width: 240px; height: 180px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.small .lab { font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sub); }
+.small .big { font-size: 44px; font-weight: 800; line-height: .95; color: var(--c); display: flex; align-items: center; gap: 8px; }
+.small .big .badge { width: 34px; height: 34px; }
+.small .who { font-size: 22px; font-weight: 700; line-height: 1.05; }
+.small .seg, .small .bar { height: 14px; }
+.small.alert { background: color-mix(in srgb, var(--c) 20%, var(--bg)); }
+.small .quiet { margin-top: auto; font-size: 18px; color: var(--sub); font-weight: 600; }
+.strip { width: 480px; height: 64px; padding: 0 16px; display: flex; align-items: center; gap: 12px; }
+.strip.alert { background: color-mix(in srgb, var(--c) 20%, var(--bg)); }
+.strip b { font-size: 24px; font-weight: 800; }
+.strip span { font-size: 19px; color: var(--sub); font-weight: 600; margin-left: auto; }
+.notif { width: 480px; padding: 14px 16px; display: grid; grid-template-columns: 30px 1fr auto; gap: 4px 12px; align-items: center; }
+.notif .h { grid-column: 2 / span 2; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--sub); font-weight: 700; }
+.notif b { grid-column: 2; font-size: 23px; font-weight: 800; line-height: 1.1; }
+.notif .s { grid-column: 2; font-size: 18px; color: var(--sub); font-weight: 500; }
+.notif .act { grid-column: 3; grid-row: 2 / span 2; font-size: 20px; font-weight: 800; padding: 10px 16px; border-radius: 6px; background: var(--fg); color: var(--bg); }
+.alertbar { width: 480px; padding: 16px 18px; display: flex; gap: 14px; align-items: center; background: var(--red); color: var(--on-red); }
+.alertbar .ico { color: var(--on-red); }
+.alertbar b { font-size: 26px; font-weight: 800; display: block; line-height: 1.05; }
+.alertbar span { font-size: 19px; font-weight: 500; }
+@media (max-width: 560px) { h1 { font-size: 34px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Karoo 3 extension · design concepts v2</span>
+    <h1>Sensor Juice</h1>
+    <p class="lede">Battery overview for every paired sensor, used mainly before and after the ride. Screens are drawn at real Karoo 3 size (480×800) in dark and light ride modes. Low batteries come first and get large cards; healthy ones fold into one compact block. Sensors the Karoo only reports as a level (New, Good, OK, Low, Critical) get a 5-segment gauge. Sensors with a real percentage get a continuous bar and the number. All values are example data.</p>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <span class="size">Hero · app screen · 480×800 · opened from the Karoo menu or the pre-ride notification</span>
+      <h2>Before the ride: battery check</h2>
+      <p>The verdict line answers "can I ride?" first. Each attention card states what to do, and what the estimate is based on. The healthy group shows a gauge and name only.</p>
+    </div>
+    <div class="pair" id="pre"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="size">Hero · app screen · 480×800 · opened from the ride-end notification</span>
+      <h2>After the ride: what to charge tonight</h2>
+      <p>Grouped by when to charge. Each device shows how much it dropped during this ride; the drain rates feed the "rides left" estimates.</p>
+    </div>
+    <div class="pair" id="post"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="size">Triggers · SDK effects</span>
+      <h2>How the overview reaches the rider</h2>
+      <p>A ride-end <code>SystemNotification</code> carries an <code>actionIntent</code> that opens the post-ride screen. An <code>InRideAlert</code> fires when recording starts with something below 15 %, and when a device first drops a band during the ride. In-ride alerts cannot open an app.</p>
+    </div>
+    <div class="pair">
+      <div class="stage"><div class="k notif" id="n1"></div><span class="cap">Control Center notification after ride end (dark)</span></div>
+      <div class="stage"><div class="k light notif" id="n2"></div><span class="cap">Same notification, light mode</span></div>
+      <div class="stage"><div class="k alertbar"><div class="ico" data-i="pedal"></div><div><b>Assioma R · under 15 %</b><span>Charge before your next ride.</span></div></div><span class="cap">InRideAlert at recording start</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="size">Secondary · in-ride data fields</span>
+      <h2>Compact field: weakest battery only</h2>
+      <p>A 1×1 field that stays calm until something drops below 30 %, then shows that device. A slim strip variant can sit at the bottom of a page and stays blank while everything is fine.</p>
+    </div>
+    <div class="pair" id="ride"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="size">Colour scale</span>
+      <h2>Four bands, each with its own icon</h2>
+      <p>Each band has an icon, a word and a gauge length, so it reads without colour and in direct sun. Coarse levels map onto the same bands, choosing the worse band when a level spans two.</p>
+    </div>
+    <div class="scale-wrap">
+      <table class="scale">
+        <thead><tr><th>Band</th><th>Exact %</th><th>Coarse level maps here</th><th>Icon</th><th>Default advice</th></tr></thead>
+        <tbody>
+          <tr><td><span class="sw" style="background:#0f8a44"></span>Green</td><td>≥ 50 %</td><td>New (&gt;95), Good (81–95), OK (46–80)</td><td>Check</td><td>"OK for ~N rides", or nothing</td></tr>
+          <tr><td><span class="sw" style="background:#b58900"></span>Yellow</td><td>30–49 %</td><td>none (no level falls fully inside)</td><td>Half-filled circle</td><td>"Charge this week"</td></tr>
+          <tr><td><span class="sw" style="background:#d45f00"></span>Orange</td><td>15–29 %</td><td>Low (16–45)</td><td>Triangle with !</td><td>"Charge before next ride"</td></tr>
+          <tr><td><span class="sw" style="background:#cf1408"></span>Red</td><td>&lt; 15 %</td><td>Critical (1–15)</td><td>Filled octagon with !</td><td>"Charge before this ride" (pre) / "Charge tonight" (post)</td></tr>
+          <tr><td><span class="sw" style="background:#8a938d"></span>Grey</td><td>no reading</td><td>Invalid, or older than 7 days</td><td>Question mark</td><td>"Not seen since …, wake the sensor"</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cap">Green starts at 50 % rather than 60 %. With a 60 % line the OK level (46–80 %) would sit across two bands, and most healthy sensors would show yellow. Coin-cell devices (HR strap, Di2 shifters) say "Replace CR2032/CR1632" instead of "Charge".</p>
+  </section>
+</div>
+
+<script>
+const ICON = {
+  shift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
+  lever: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M8 3h6l2 6-3 12h-3L9 9z"/></svg>',
+  radar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="8" y="9" width="8" height="12" rx="2"/><path d="M6 6a8 8 0 0 1 12 0M3.5 3.5a12 12 0 0 1 17 0"/></svg>',
+  pedal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="8" width="13" height="8" rx="2"/><path d="M16 12h5"/></svg>',
+  heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg>',
+  karoo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M9 18h6"/></svg>',
+  plug: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/></svg>'
+};
+const BADGE = {
+  green: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="var(--bg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  yellow: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>',
+  orange: '<svg viewBox="0 0 24 24"><path d="M12 2.5L22.5 21h-21z" fill="currentColor"/><path d="M12 9v5.5M12 17.6v.4" stroke="var(--bg)" stroke-width="2.6" stroke-linecap="round"/></svg>',
+  red: '<svg viewBox="0 0 24 24"><path d="M8 2h8l6 6v8l-6 6H8l-6-6V8z" fill="currentColor"/><path d="M12 6.5v7M12 16.8v.4" stroke="var(--bg)" stroke-width="2.8" stroke-linecap="round"/></svg>',
+  grey: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M9.3 9.3a2.8 2.8 0 1 1 3.9 2.6c-.8.4-1.2 1-1.2 1.8M12 17v.3" fill="none" stroke="var(--bg)" stroke-width="2.4" stroke-linecap="round"/></svg>'
+};
+// level: 1..5 for coarse buckets (Critical..New), pct for exact sources
+const LEVEL_WORD = ['', 'Critical', 'Low', 'OK', 'Good', 'New'];
+const bandOf = d => d.stale ? 'grey' : d.pct != null
+  ? (d.pct >= 50 ? 'green' : d.pct >= 30 ? 'yellow' : d.pct >= 15 ? 'orange' : 'red')
+  : (d.lvl >= 3 ? 'green' : d.lvl === 2 ? 'orange' : 'red');
+const gauge = d => d.pct != null
+  ? `<div class="bar"><b style="width:${d.pct}%"></b></div>`
+  : `<div class="seg">${[1,2,3,4,5].map(i => `<i class="${i <= d.lvl ? 'on' : ''}"></i>`).join('')}</div>`;
+const valueText = d => d.pct != null ? d.pct + '%' : LEVEL_WORD[d.lvl];
+
+function card(d) {
+  const b = bandOf(d);
+  return `<div class="card b-${b} ${b}">
+    <div class="ico">${ICON[d.icon]}</div>
+    <div class="nm">${d.name}<small>${d.meta}</small></div>
+    <div class="lv"><span class="badge">${BADGE[b]}</span>${valueText(d)}</div>
+    <div class="gauge">${gauge(d)}</div>
+    <div class="adv">${d.advice}${d.est ? ` <em>· ${d.est}</em>` : ''}</div>
+  </div>`;
+}
+function healthy(list, note) {
+  return `<div class="healthy">${list.map(d => `<div class="hrow b-${bandOf(d)}${d.stale ? ' stale' : ''}"><span>${d.name}</span>${gauge(d)}</div>`).join('')}
+    ${note ? `<div class="hnote">${note}</div>` : ''}</div>`;
+}
+
+// Example data: the rider's setup, values invented.
+const PRE_ATTN = [
+  { name: 'Assioma R', meta: 'Power pedal · ANT+', icon: 'pedal', lvl: 1, advice: 'Charge before this ride', est: 'under ~7 h left, rated life' },
+  { name: 'Di2 battery', meta: 'Main battery · via Ki2', icon: 'shift', pct: 27, advice: 'Charge before next ride', est: '~1 ride left, your last 6 rides' },
+  { name: 'Karoo', meta: 'Head unit', icon: 'karoo', pct: 46, advice: 'Charge this week', est: '~5 h of riding left' }
+];
+const PRE_OK = [
+  { name: 'Varia RTL515', lvl: 3 }, { name: 'Assioma L', lvl: 4 },
+  { name: 'Di2 L shifter', lvl: 4 }, { name: 'Di2 R shifter', lvl: 4 },
+  { name: 'HRM-Pro', lvl: 5, stale: true }
+];
+function pre(mode) {
+  return `<div class="stage"><div class="k screen ${mode}">
+    <div class="sbar"><span>07:42</span><span>Karoo 46 %</span></div>
+    <div class="hd"><b>Battery check</b><span>8 sensors · Road bike profile</span></div>
+    <div class="verdict b-red"><span class="badge">${BADGE.red}</span><div><b>1 sensor won't last the ride</b><span>Assioma R is under 15 %. Two more need charging soon.</span></div></div>
+    <div class="body">
+      <div class="grp">Needs attention · 3</div>
+      ${PRE_ATTN.map(card).join('')}
+      <div class="grp">Healthy · 5</div>
+      ${healthy(PRE_OK, 'HRM-Pro last seen yesterday 18:10. Put it on to update.')}
+    </div>
+    <div class="foot"><div class="btn">Settings</div><div class="btn pri">Done</div></div>
+  </div><span class="cap">${mode === 'light' ? 'Light' : 'Dark'} ride mode</span></div>`;
+}
+
+const POST_TONIGHT = [
+  { name: 'Assioma R', meta: 'Low → Critical this ride', icon: 'pedal', lvl: 1, advice: 'Charge tonight', est: 'about 2 h to full' },
+  { name: 'Varia RTL515', meta: 'OK → Low this ride', icon: 'radar', lvl: 2, advice: 'Charge before next ride', est: 'radar uses ~1 level per 3 h' },
+  { name: 'Di2 battery', meta: '34 % → 27 % (−7 %)', icon: 'shift', pct: 27, advice: 'Charge before next ride', est: '~1 ride left' }
+];
+const POST_FINE = [
+  { name: 'Karoo 58 %', pct: 58 }, { name: 'Assioma L', lvl: 4 },
+  { name: 'Di2 L shifter', lvl: 4 }, { name: 'Di2 R shifter', lvl: 4 },
+  { name: 'HRM-Pro', lvl: 5 }
+];
+function post(mode) {
+  return `<div class="stage"><div class="k screen ${mode}">
+    <div class="sbar"><span>11:03</span><span>Karoo 58 %</span></div>
+    <div class="hd"><b>After your ride</b><span>Sunday loop · 3:12 h · 94 km</span></div>
+    <div class="verdict b-orange"><span class="badge">${BADGE.orange}</span><div><b>Charge 3 devices</b><span>1 tonight, 2 before your next ride.</span></div></div>
+    <div class="body">
+      <div class="grp">Charge</div>
+      ${POST_TONIGHT.map(card).join('')}
+      <div class="grp">Fine for now · 5</div>
+      ${healthy(POST_FINE, 'Karoo used 36 % (11 %/h). Assioma L: ~4 rides left, estimate.')}
+    </div>
+    <div class="foot"><div class="btn">History</div><div class="btn pri">Done</div></div>
+  </div><span class="cap">${mode === 'light' ? 'Light' : 'Dark'} ride mode</span></div>`;
+}
+
+function small(mode, alert) {
+  if (!alert) return `<div class="stage"><div class="k small ${mode} b-green">
+      <div class="lab">Batteries</div><div class="big"><span class="badge">${BADGE.green}</span>OK</div><div class="quiet">Lowest: Varia · OK</div>
+    </div><span class="cap">${mode === 'light' ? 'Light' : 'Dark'} · all above 30 %</span></div>`;
+  return `<div class="stage"><div class="k small alert ${mode} b-red">
+      <div class="lab">Lowest battery</div><div class="big"><span class="badge">${BADGE.red}</span>Critical</div><div class="who">Assioma R</div>
+      <div class="seg"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+    </div><span class="cap">${mode === 'light' ? 'Light' : 'Dark'} · weakest device</span></div>`;
+}
+function strip(mode) {
+  return `<div class="stage"><div class="k strip alert ${mode} b-orange"><span class="badge">${BADGE.orange}</span><b>Di2 27 %</b><span>+1 more low</span></div>
+    <span class="cap">Strip, ${mode === 'light' ? 'light' : 'dark'} · empty while all is fine</span></div>`;
+}
+function notif(el) {
+  el.innerHTML = `<div class="ico">${ICON.plug}</div><div class="h">Sensor Juice · ride saved</div>
+    <b>Charge Assioma R tonight</b><div class="s">2 more before your next ride</div><div class="act">Open</div>`;
+}
+
+document.getElementById('pre').innerHTML = pre('dark') + pre('light');
+document.getElementById('post').innerHTML = post('dark') + post('light');
+document.getElementById('ride').innerHTML = small('dark', false) + small('dark', true) + small('light', true) + strip('dark') + strip('light');
+notif(document.getElementById('n1')); notif(document.getElementById('n2'));
+document.querySelectorAll('[data-i]').forEach(el => el.innerHTML = ICON[el.dataset.i]);
+</script>
