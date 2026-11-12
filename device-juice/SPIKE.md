@@ -90,3 +90,24 @@ Also note from the same log: whether the Karoo % (`KAROO_BATTERY`) streams while
 
 Attach the exported log (or the relevant lines) to the milestone-2 work: `SavedDevices` JSON from it
 becomes the unit-test fixtures (PLAN.md 6.4).
+
+## Results
+
+### Run 1: 12.11.2026, Karoo 3 (Android 12, API 32), indoor, HR strap only
+
+| # | Question | Answer | Evidence |
+|---|---|---|---|
+| 1 | Does `SavedDevices` refresh mid-ride / at ride end? | **No.** Over 40 min (two rides, pauses, ride end, +5 min) no device's `lastBattery` or `lastBatteryUpdate` changed, and every fresh subscription matched the cache (`sameAsCached=true`). Re-subscribing (fallback (a) in PLAN.md 6.3) does not help. | `SAVED_DEVICES trigger=periodic/pause/ride_end/ride_end+5m … sameAsCached=true` |
+| 1b | When does a reading change? | **When a sensor (re)connects.** Turning the HR strap off and on in Karoo Sensors pushed a new event to the existing consumer (`trigger=update n=4`) with a new `lastBatteryUpdate` for that device only. All other timestamps were from when those sensors last connected. | `10:43:39 SAVED_DEVICES trigger=update n=4` |
+| 1c | Other `SavedDevices` events | Changing the ride profile flips `enabled` for profile-specific sensors (`trigger=update n=2/3`). `enabled` = used by the active profile. | `10:10:56 ACTIVE_PROFILE` followed by `update n=2` |
+| 4 | Does `ActiveRidePage` fire while Idle? | **Yes**, on every page swipe on the ride screen before Start. `ActiveRideProfile` fires on profile change while Idle. The pre-ride trigger in PLAN.md 3.2 works. | `10:11:00–10:11:38 ACTIVE_PAGE phase=IDLE` |
+| 2 | Di2 component keys / shifters | Partly. Di2 (paired via Ki2) is one `EXTENSION` device (`ki2::…`) with **no** `components`. SRAM AXS (native ANT+) lists `FRONT_DERAILLEUR`, `REAR_DERAILLEUR`, `LEFT_SHIFTER`, `RIGHT_SHIFTER`, each with its own level. | boot `SAVED_DEVICES` |
+| 3 | Assioma L/R separate? | Partly. One device whose `components` has only `RIGHT_SIDE_POWER` (pedals were asleep; re-check with both pedals awake). | boot `SAVED_DEVICES` |
+| 7 | Can we stream Ki2's data type? | **Open.** The subscription is accepted (no error) and goes `Searching`/`NotAvailable`, as expected with the Di2 absent. Needs a run with the bike. | `STREAM KI2_SHIFTING_BATTERY_PCT` |
+| – | Varia | Radar and light are two separate devices. | boot `SAVED_DEVICES` |
+| – | Karoo % | `BATTERY_PERCENT` streams in every ride state. | `STREAM KAROO_BATTERY` |
+| – | Service lifetime | The service was bound right after install and ran the whole session. Rebind after reboot not tested yet. | `BOOT` |
+
+Still to run, with the bike: Q2 (Di2 parts via Ki2 stream), Q3 (both pedals awake), Q7 (Ki2 %), and a reboot to check the service rebinds.
+
+Known spike-app issues: **Share** does nothing on the Karoo (no share targets; use Save to Downloads or adb), and the saved file gets an extra `.txt` extension.

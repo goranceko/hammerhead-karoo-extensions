@@ -266,10 +266,10 @@ If `SavedDevices` does not refresh at ride end: (a) re-subscribe after a short d
 
 | # | Question | Status | Needs |
 |---|---|---|---|
-| 1 | Does `SavedDevices` refresh mid-ride / at ride end? | **Unverified** | Device test |
+| 1 | Does `SavedDevices` refresh mid-ride / at ride end? | **Answered (12.11.2026): no.** Readings change only when a sensor (re)connects; see SPIKE.md Results | Design: show "as of" times; post-ride drop needs another source |
 | 2 | Di2 component keys; are shifters listed? | **Unverified** | Device test |
 | 3 | Are Assioma L and R separate entries? | **Unverified** | Device test |
-| 4 | Does `ActiveRidePage` fire while Idle (pre-ride trigger)? | **Hypothesis** | Device test |
+| 4 | Does `ActiveRidePage` fire while Idle (pre-ride trigger)? | **Answered (12.11.2026): yes**, on each page swipe before Start | none |
 | 5 | Di2 paired natively or via Ki2? | **Decided**: via Ki2 | none |
 | 6 | Assioma / HR strap on BLE or ANT+? Only BLE allows a real % | Open | Rider |
 | 7 | Can one extension stream another extension's data type? | **Hypothesis** | Device test, milestone 0. Decides whether `Ki2Source` is v1 |
