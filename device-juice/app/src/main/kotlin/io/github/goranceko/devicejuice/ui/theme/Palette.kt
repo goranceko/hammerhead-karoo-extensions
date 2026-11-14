@@ -30,13 +30,13 @@ object Palette {
     }
 
     /**
-     * Fixed accent per sensor type, for the type badge only. Hues stay clear of the battery colours
+     * Fixed accent per sensor type, for the type badge only. Hues stay clear of the battery colours, except radar, which takes a soft Varia red
      * (red, orange, yellow, green), which keep their meaning on the gauge, value and advice.
      */
     fun accentOf(kind: DeviceKind): Color = when (kind) {
         DeviceKind.SHIFTING, DeviceKind.SHIFTER_COIN -> Color(0xFF5AA9FF)
         DeviceKind.POWER -> Color(0xFFB08CFF)
-        DeviceKind.RADAR -> Color(0xFF38D4E0)
+        DeviceKind.RADAR -> Color(0xFFD9726E) // soft Varia red, well below the battery red in saturation
         DeviceKind.LIGHT -> Color(0xFFE6E9F0)
         DeviceKind.HR -> Color(0xFFFF7BB5)
         DeviceKind.HEAD_UNIT -> Color(0xFFB6BDB8)
