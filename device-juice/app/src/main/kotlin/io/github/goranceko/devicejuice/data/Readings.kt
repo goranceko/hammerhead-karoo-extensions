@@ -50,7 +50,7 @@ fun buildReadings(
                     id = "${device.id}/$key", deviceId = device.id, componentKey = key,
                     name = "${device.name} · ${humanise(key)}", kind = DeviceKinds.ofComponent(key, kind),
                     detail = detail, enabled = device.enabled, now = now,
-                )
+                ).copy(deviceName = device.name, partName = humanise(key))
             }
         } else {
             val base = levelReading(

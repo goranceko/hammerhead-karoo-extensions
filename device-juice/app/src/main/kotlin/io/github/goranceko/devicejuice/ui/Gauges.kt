@@ -1,0 +1,125 @@
+package io.github.goranceko.devicejuice.ui
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import io.github.goranceko.devicejuice.model.Band
+import io.github.goranceko.devicejuice.model.BatteryReading
+import io.github.goranceko.devicejuice.ui.theme.Palette
+import io.hammerhead.karooext.models.BatteryStatus
+
+/** Coarse levels are 5 segments (PLAN.md 4): CRITICAL 1 … NEW 5, INVALID 0. */
+fun segmentsOf(level: BatteryStatus?): Int = when (level) {
+    BatteryStatus.NEW -> 5
+    BatteryStatus.GOOD -> 4
+    BatteryStatus.OK -> 3
+    BatteryStatus.LOW -> 2
+    BatteryStatus.CRITICAL -> 1
+    BatteryStatus.INVALID, null -> 0
+}
+
+/** The % range a Karoo level stands for (BatteryStatus.fromPercentage). */
+fun rangeOf(level: BatteryStatus?): String? = when (level) {
+    BatteryStatus.NEW -> "96–100 %"
+    BatteryStatus.GOOD -> "81–95 %"
+    BatteryStatus.OK -> "46–80 %"
+    BatteryStatus.LOW -> "16–45 %"
+    BatteryStatus.CRITICAL -> "1–15 %"
+    BatteryStatus.INVALID, null -> null
+}
+
+fun valueText(r: BatteryReading): String = r.percent?.let { "$it%" } ?: when (r.level) {
+    null, BatteryStatus.INVALID -> "–"
+    BatteryStatus.OK -> "OK"
+    else -> r.level.name.lowercase().replaceFirstChar { it.uppercase() }
+}
+
+/** Horizontal battery: continuous fill for an exact %, 5 cells for a level. */
+@Composable
+fun BatteryGlyph(r: BatteryReading, width: Dp = 34.dp, height: Dp = 16.dp) {
+    val color = Palette.of(r.band)
+    Canvas(Modifier.size(width, height)) {
+        val nub = size.width * 0.08f
+        val stroke = 2.dp.toPx()
+        val body = Size(size.width - nub - stroke, size.height - stroke)
+        val o = Offset(stroke / 2, stroke / 2)
+        drawRoundRect(color.copy(alpha = 0.9f), o, body, CornerRadius(3.dp.toPx()), style = Stroke(stroke))
+        drawRoundRect(color.copy(alpha = 0.9f), Offset(size.width - nub, size.height * 0.3f), Size(nub, size.height * 0.4f), CornerRadius(1.5.dp.toPx()))
+        val pad = stroke + 1.5.dp.toPx()
+        val inner = Size(body.width - 2 * pad + stroke, body.height - 2 * pad + stroke)
+        val start = Offset(pad, pad)
+        if (r.percent != null) {
+            val w = inner.width * (r.percent.coerceIn(0, 100) / 100f)
+            drawRoundRect(color, start, Size(w.coerceAtLeast(2f), inner.height), CornerRadius(1.5.dp.toPx()))
+        } else {
+            val lit = if (r.stale) 0 else segmentsOf(r.level)
+            val gap = 1.5.dp.toPx()
+            val cell = (inner.width - gap * 4) / 5
+            repeat(5) { i ->
+                drawRoundRect(
+                    if (i < lit) color else Palette.segOff,
+                    Offset(start.x + i * (cell + gap), start.y),
+                    Size(cell, inner.height),
+                    CornerRadius(1.dp.toPx()),
+                )
+            }
+        }
+    }
+}
+
+/** Ring gauge for the verdict: continuous arc for an exact %, 5 arc segments for a level. */
+@Composable
+fun LevelRing(r: BatteryReading?, band: Band, size: Dp, content: @Composable () -> Unit) {
+    val color = Palette.of(band)
+    Box(Modifier.size(size), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.size(size)) {
+            val w = 7.dp.toPx()
+            val arcSize = Size(this.size.width - w, this.size.height - w)
+            val tl = Offset(w / 2, w / 2)
+            if (r?.percent != null) {
+                drawArc(Palette.segOff, -90f, 360f, false, tl, arcSize, style = Stroke(w))
+                drawArc(color, -90f, 360f * r.percent.coerceIn(0, 100) / 100f, false, tl, arcSize, style = Stroke(w, cap = StrokeCap.Round))
+            } else {
+                val lit = if (r == null || r.stale) 0 else segmentsOf(r.level)
+                val sweep = 360f / 5
+                repeat(5) { i ->
+                    drawArc(if (i < lit) color else Palette.segOff, -90f + i * sweep + 4f, sweep - 8f, false, tl, arcSize, style = Stroke(w, cap = StrokeCap.Round))
+                }
+            }
+        }
+        content()
+    }
+}
+
+/** Device-type icon on a soft circle, both in the band colour (like Karoo's own Sensors list). */
+@Composable
+fun KindBadge(r: BatteryReading, size: Dp = 40.dp) {
+    val color = Palette.of(r.band)
+    Box(
+        Modifier.size(size).background(color.copy(alpha = 0.16f), CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(Icons.of(r.kind), contentDescription = r.kind.name, tint = color, modifier = Modifier.size(size * 0.55f))
+    }
+}
+
+@Composable
+fun BandBadge(band: Band, size: Dp = 22.dp) {
+    Image(Icons.badge(band), contentDescription = band.name, modifier = Modifier.size(size))
+}
+

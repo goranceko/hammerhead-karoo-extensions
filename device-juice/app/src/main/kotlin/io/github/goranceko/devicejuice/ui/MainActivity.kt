@@ -57,7 +57,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** Milestone 2: plain list of every device's battery. Debug builds add the milestone-0 spike panel. */
+/** Battery overview (milestone 3). Debug builds add the milestone-0 spike log behind a button. */
 class MainActivity : ComponentActivity() {
     private lateinit var karoo: KarooSystemService
 
@@ -72,75 +72,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
                 val state by stateFlow.collectAsStateWithLifecycle(initialValue = BatteryRepository.State(emptyList(), 0))
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color.Black)
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                ) {
-                    Text("Device Juice", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(8.dp))
-                    if (state.readings.isEmpty()) Text("Waiting for Karoo…", color = Color.LightGray, fontSize = 16.sp)
-                    state.readings.forEach { ReadingRow(it, onHide = { hiddenDevices.hide(it.id) }) }
-                    if (state.hiddenCount > 0) {
-                        OutlinedButton(onClick = { hiddenDevices.get().forEach(hiddenDevices::unhide) }) { Text("Show ${state.hiddenCount} hidden") }
-                    }
-                    if (spikeLog != null) {
-                        Spacer(Modifier.height(16.dp))
-                        SpikePanel(spikeLog)
-                    }
-                }
+                var showDebug by remember { mutableStateOf(false) }
+                OverviewScreen(
+                    state = state,
+                    now = System.currentTimeMillis(),
+                    onHide = { hiddenDevices.hide(it.id) },
+                    onShowHidden = { hiddenDevices.get().forEach(hiddenDevices::unhide) },
+                    footer = {
+                        if (spikeLog != null) {
+                            OutlinedButton(onClick = { showDebug = !showDebug }) { Text(if (showDebug) "Hide debug log" else "Debug log") }
+                            if (showDebug) SpikePanel(spikeLog)
+                        }
+                    },
+                )
             }
         }
     }
 
-    /** Milestone 2 plain list; the designed overview is milestone 3. */
-    @Composable
-    private fun ReadingRow(r: BatteryReading, onHide: () -> Unit) {
-        val value = r.percent?.let { "$it %" } ?: r.level?.name ?: "–"
-        val age = r.updatedAt?.let { DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString() } ?: "never"
-        Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(12.dp).background(bandColor(r.band)))
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    r.name,
-                    color = if (r.enabled) Color.White else Color.Gray,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "${r.kind.name.lowercase()} · $age${if (r.stale) " · stale" else ""}",
-                    color = Color.LightGray,
-                    fontSize = 11.sp,
-                    modifier = Modifier.weight(1f).padding(start = 20.dp),
-                )
-                if (r.kind != DeviceKind.HEAD_UNIT) {
-                    Text(
-                        "Hide",
-                        color = Color(0xFFB39DDB),
-                        fontSize = 12.sp,
-                        modifier = Modifier.clickable(onClick = onHide).padding(horizontal = 8.dp, vertical = 4.dp),
-                    )
-                }
-            }
-        }
-    }
-
-    private fun bandColor(band: Band): Color = when (band) {
-        Band.GREEN -> Color(0xFF3DDC84)
-        Band.YELLOW -> Color(0xFFFFD54F)
-        Band.ORANGE -> Color(0xFFFF8F00)
-        Band.RED -> Color(0xFFFF3B30)
-        Band.GREY -> Color(0xFF9E9E9E)
-    }
 
     override fun onDestroy() {
         karoo.disconnect()

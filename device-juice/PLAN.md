@@ -244,7 +244,7 @@ Merging: a fresher exact % from a direct source wins over the Karoo level. The i
 | 0 | **Device spike** | On the rider's Karoo 3 with their sensors, log raw `SavedDevices` at boot, at Idle→Recording, every 5 min, at ride end and +5 min. Answer: does it refresh mid-ride and at ride end; Di2 component keys; Assioma L/R split; Varia battery present? Also: does `ActiveRidePage` fire while Idle? Does streaming the Ki2 data type from a second app work? |
 | 1 | Skeleton | Extension installs, launcher activity, Karoo % shown |
 | 2 | Repository + bands | `SavedDevices` flattened; band mapping; unit tests on milestone-0 fixtures. **Done 14.11.2026**: also Ki2 % (moved up from 8), RADAR/LIGHT split, and hide per device (moved up from 7) |
-| 3 | Overview screen | Pre/post variants in Compose, dark + light, matches mockup |
+| 3 | Overview screen | Pre/post variants in Compose, dark + light, matches mockup. **Pre-ride dark done 14.11.2026**: verdict ring, type icons tinted by band (like Karoo's Sensors list), battery glyphs, level word + % range, coin-cell wording, long-press to hide. Still open: light ride mode, post-ride variant (needs milestone 4) |
 | 4 | Ride hooks | Ride-end notification opens post-ride screen; recording-start alert; once per ride |
 | 5 | Advice + estimates | Rules engine; RideLog; learned rate; rated-life fallback; labels |
 | 6 | In-ride field | 1×1 weakest + strip (Glance) |

@@ -25,7 +25,16 @@ data class BatteryReading(
     val enabled: Boolean,
     val stale: Boolean,
     val band: Band,
+    /** The device's own name; equals [name] for single-part devices. */
+    val deviceName: String = name,
+    /** "Left shifter" for a component row, null otherwise. */
+    val partName: String? = null,
 ) {
+    /** Short label for tight layouts: the part name, or the device name. */
+    val title: String get() = partName ?: deviceName
+
+    /** For sentences: "AXS System 2169 left shifter". */
+    val phrase: String get() = partName?.let { "$deviceName ${it.lowercase()}" } ?: deviceName
     /** Lower = emptier. Exact percent, or the middle of the level's range. */
     val sortValue: Int get() = percent ?: when (level) {
         BatteryStatus.NEW -> 97
