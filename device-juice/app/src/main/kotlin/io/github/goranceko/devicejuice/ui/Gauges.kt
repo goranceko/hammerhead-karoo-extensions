@@ -133,12 +133,15 @@ fun LevelRing(r: BatteryReading?, band: Band, size: Dp, content: @Composable () 
 @Composable
 fun KindBadge(r: BatteryReading, size: Dp = 40.dp) {
     val color = Palette.accentOf(r.kind)
+    val icon = Icons.of(r)
+    // A whole electronic groupset (Di2) gets a solid badge so it stands out from its own parts and the AXS rows.
+    val solid = icon == Icons.groupset
     Box(Modifier.size(size)) {
         Box(
-            Modifier.size(size).background(color.copy(alpha = 0.16f), CircleShape),
+            Modifier.size(size).background(if (solid) color else color.copy(alpha = 0.16f), CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.of(r), contentDescription = r.kind.name, tint = color, modifier = Modifier.size(size * 0.62f))
+            Icon(icon, contentDescription = r.kind.name, tint = if (solid) Palette.bg else color, modifier = Modifier.size(size * 0.62f))
         }
         Icons.tagOf(r)?.let { tag ->
             val chip = size * 0.44f
