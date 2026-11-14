@@ -38,6 +38,16 @@ object Icons {
         ),
     )
 
+    /** Electronic groupset (Di2 via Ki2, a shifting system shown as one device): toothed ring with a lightning bolt. */
+    val groupset = icon(
+        "groupset",
+        listOf(
+            "M19.5,12a7.5,7.5 0 1,1 -15,0a7.5,7.5 0 1,1 15,0",
+            "M12 2.2v2.3M12 19.5v2.3M2.2 12h2.3M19.5 12h2.3M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M5.1 18.9l1.6-1.6M17.3 6.7l1.6-1.6",
+        ),
+        listOf("M13.2 6.8L8.9 12.9h2.9l-1 4.3 4.3-6.1h-2.9z"),
+    )
+
     /** Cassette seen from the side: cogs getting smaller, for the rear derailleur. */
     val cassette = icon("cassette", listOf("M4.5 3v18M9 5v14M13.5 7v10M18 9v6", "M2.5 21h19"))
 
@@ -62,7 +72,7 @@ object Icons {
             key.contains("FRONT_DERAILLEUR") -> chainring
             else -> when (r.kind) {
                 DeviceKind.HEAD_UNIT -> karoo
-                DeviceKind.SHIFTING -> chainring
+                DeviceKind.SHIFTING -> groupset
                 DeviceKind.SHIFTER_COIN -> shifter
                 DeviceKind.RADAR -> radar
                 DeviceKind.LIGHT -> light
