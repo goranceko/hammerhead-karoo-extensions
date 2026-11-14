@@ -7,8 +7,6 @@ import io.github.goranceko.devicejuice.data.BatteryRepository
 import io.github.goranceko.devicejuice.estimate.DeviceRide
 import io.github.goranceko.devicejuice.estimate.RideEntry
 import io.github.goranceko.devicejuice.estimate.RideLogStore
-import io.github.goranceko.devicejuice.data.hiddenDevices
-import io.github.goranceko.devicejuice.data.pinnedDevices
 import io.github.goranceko.devicejuice.karoo.consumerFlow
 import io.github.goranceko.devicejuice.model.Band
 import io.github.goranceko.devicejuice.model.BatteryReading
@@ -25,10 +23,8 @@ import io.hammerhead.karooext.models.SystemNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.toArgb
 
@@ -38,7 +34,12 @@ import androidx.compose.ui.graphics.toArgb
  * - Ride end: after [END_SETTLE_MS], a notification that opens the post-ride screen, when anything needs charging.
  * - Ride page opened while Idle (SPIKE.md: ActiveRidePage fires before Start): one notification per idle period.
  */
-class RideHooks(private val context: Context, private val karoo: KarooSystemService, private val scope: CoroutineScope) {
+class RideHooks(
+    context: Context,
+    private val karoo: KarooSystemService,
+    private val scope: CoroutineScope,
+    private val state: StateFlow<BatteryRepository.State?>,
+) {
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     private val rides = RideTransitionDetector()
     private val jobs = mutableListOf<Job>()
@@ -47,14 +48,10 @@ class RideHooks(private val context: Context, private val karoo: KarooSystemServ
     /** Recording time of the current ride, pauses excluded. */
     private var recordedMs = 0L
     private var recordingSince: Long? = null
-    private lateinit var state: StateFlow<BatteryRepository.State?>
 
     private val active: List<BatteryReading> get() = state.value?.readings.orEmpty().filter { it.enabled }
 
     fun start() {
-        state = BatteryRepository(karoo, hiddenDevices(context), pinnedDevices(context), rideLog).state()
-            .catch { Log.w(TAG, "battery state failed", it) }
-            .stateIn(scope, SharingStarted.Eagerly, null)
         jobs += scope.launch {
             karoo.consumerFlow<RideState>().catch { Log.w(TAG, "ride state failed", it) }.collect { s ->
                 when (rides.onPhase(s.toPhase())) {

@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Milestone 0/1: no data types yet; the in-ride field arrives in milestone 6. -->
 <ExtensionInfo
     displayName="@string/app_name"
     icon="@drawable/ic_device_juice"
     id="devicejuice"
-    scansDevices="false" />
+    scansDevices="false">
+
+    <DataType
+        description="@string/field_weakest_description"
+        displayName="@string/field_weakest"
+        graphical="true"
+        icon="@drawable/ic_device_juice"
+        typeId="weakest" />
+
+    <DataType
+        description="@string/field_strip_description"
+        displayName="@string/field_strip"
+        graphical="true"
+        icon="@drawable/ic_device_juice"
+        typeId="strip" />
+</ExtensionInfo>

@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Device Juice</string>
+    <string name="field_weakest">Weakest battery</string>
+    <string name="field_weakest_description">The emptiest device in this ride profile, coloured by battery level.</string>
+    <string name="field_strip">Battery warning</string>
+    <string name="field_strip_description">Blank while all batteries are fine; shows the weakest device once one is low.</string>
 </resources>
