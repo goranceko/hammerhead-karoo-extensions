@@ -132,7 +132,7 @@ fun LevelRing(r: BatteryReading?, band: Band, size: Dp, content: @Composable () 
 /** Device-type icon on a soft circle, both in the band colour (like Karoo's own Sensors list), with an L/R tag for paired parts. */
 @Composable
 fun KindBadge(r: BatteryReading, size: Dp = 40.dp) {
-    val color = Palette.of(r.band)
+    val color = Palette.accentOf(r.kind)
     Box(Modifier.size(size)) {
         Box(
             Modifier.size(size).background(color.copy(alpha = 0.16f), CircleShape),
@@ -161,7 +161,6 @@ fun KindBadge(r: BatteryReading, size: Dp = 40.dp) {
 fun BandBadge(band: Band, size: Dp = 22.dp) {
     Image(Icons.badge(band), contentDescription = band.name, modifier = Modifier.size(size))
 }
-
 
 /** Small push-pin after a pinned device's name. */
 @Composable

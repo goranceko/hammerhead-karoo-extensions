@@ -2,6 +2,7 @@ package io.github.goranceko.devicejuice.ui.theme
 
 import androidx.compose.ui.graphics.Color
 import io.github.goranceko.devicejuice.model.Band
+import io.github.goranceko.devicejuice.model.DeviceKind
 
 /** Dark ride-mode palette from mockup.html, slightly lifted for a modern look. */
 object Palette {
@@ -26,5 +27,19 @@ object Palette {
         Band.ORANGE -> orange
         Band.RED -> red
         Band.GREY -> grey
+    }
+
+    /**
+     * Fixed accent per sensor type, for the type badge only. Hues stay clear of the battery colours
+     * (red, orange, yellow, green), which keep their meaning on the gauge, value and advice.
+     */
+    fun accentOf(kind: DeviceKind): Color = when (kind) {
+        DeviceKind.SHIFTING, DeviceKind.SHIFTER_COIN -> Color(0xFF5AA9FF)
+        DeviceKind.POWER -> Color(0xFFB08CFF)
+        DeviceKind.RADAR -> Color(0xFF38D4E0)
+        DeviceKind.LIGHT -> Color(0xFFE6E9F0)
+        DeviceKind.HR -> Color(0xFFFF7BB5)
+        DeviceKind.HEAD_UNIT -> Color(0xFFB6BDB8)
+        DeviceKind.OTHER -> Color(0xFF8F98A0)
     }
 }
