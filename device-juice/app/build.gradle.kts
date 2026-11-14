@@ -12,8 +12,9 @@ android {
         applicationId = "io.github.goranceko.devicejuice"
         minSdk = 23
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        // Keep in step with manifest.json (latestVersion / latestVersionCode); CI checks the tag against it.
+        versionCode = 9
+        versionName = "0.9.0"
     }
 
     // Shared debug key, committed on purpose, so local and CI builds can update each other on the Karoo.
@@ -24,6 +25,15 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        // Private release key, only when CI (or a local shell) provides it; otherwise releases use the shared key.
+        System.getenv("RELEASE_STORE_FILE")?.takeIf { file(it).exists() }?.let { path ->
+            create("release") {
+                storeFile = file(path)
+                storePassword = System.getenv("RELEASE_STORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -33,7 +43,7 @@ android {
         }
         release {
             buildConfigField("boolean", "SPIKE_LOGGING", "false")
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
             isMinifyEnabled = false
         }
     }

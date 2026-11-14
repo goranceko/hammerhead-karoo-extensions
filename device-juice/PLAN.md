@@ -250,7 +250,7 @@ Merging: a fresher exact % from a direct source wins over the Karoo level. The i
 | 6 | In-ride field | 1×1 weakest + strip (Glance). **Built 14.11.2026 with plain RemoteViews (no Glance needed)**: "Weakest battery" (emptiest device in the profile, band-coloured, value autosized) and "Battery warning" strip (blank until something is red/orange). Both share the service's battery state with the ride hooks. Not yet seen on a ride page |
 | 7 | Settings | Rename/hide, thresholds, toggles. **Built 14.11.2026**: Settings screen (link at the bottom of the overview): light mode; ride start / ride end / before-the-ride toggles; green/yellow/orange % thresholds in 5 % steps (exact % only, levels keep the fixed mapping), reset; hidden devices with Show per device; renamed devices with reset. Rename from the long-press menu (renames the device and all its parts) |
 | 8 | v2 precision | Ki2 source, then opt-in BLE |
-| 9 | Release | Signed APK, README, sideload instructions |
+| 9 | Release | Signed APK, README, sideload instructions. **Built 14.11.2026**: version 0.9.0; tag `device-juice-v*` builds the release APK (checked against manifest.json) and publishes it; private release key from repo secrets when set, else the shared key; [README.md](README.md) with install, fields, levels and limits. Not yet tagged |
 
 If `SavedDevices` does not refresh at ride end: (a) re-subscribe after a short delay (**Hypothesis** that this returns new values), (b) use the `SHIFTING_BATTERY` stream for Di2, (c) show "as of <time>" on every reading.
 

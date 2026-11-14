@@ -1,8 +1,8 @@
 name: Device Juice
 
 # Pushes to main build the debug APK and run unit tests.
-# A tag like device-juice-v0.1.0 also publishes the APK + manifest.json as a GitHub release
-# (open the APK link in the Hammerhead Companion app and share it to the Karoo).
+# A tag like device-juice-v0.9.0 also builds the release APK and publishes it with manifest.json as a
+# GitHub release (open the APK link in the Hammerhead Companion app and share it to the Karoo).
 on:
   push:
     branches: [main]
@@ -34,13 +34,33 @@ jobs:
       - name: Build debug APK and run unit tests
         run: ./gradlew --no-daemon :device-juice:assembleDebug :device-juice:testDebugUnitTest
 
-      - name: Stage APK
-        run: cp device-juice/app/build/outputs/apk/debug/device-juice-debug.apk device-juice.apk
-
       - uses: actions/upload-artifact@v4
         with:
           name: device-juice-debug
-          path: device-juice.apk
+          path: device-juice/app/build/outputs/apk/debug/device-juice-debug.apk
+
+      - name: Check tag matches manifest.json
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          want="device-juice-v$(jq -r .latestVersion device-juice/app/manifest.json)"
+          [ "$GITHUB_REF_NAME" = "$want" ] || { echo "Tag $GITHUB_REF_NAME does not match manifest.json ($want)"; exit 1; }
+
+      # Optional private release key: set the RELEASE_KEYSTORE_BASE64, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS
+      # and RELEASE_KEY_PASSWORD secrets. Without them the release uses the shared key in the repo.
+      - name: Build release APK
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          if [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
+            echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            export RELEASE_STORE_FILE="$RUNNER_TEMP/release.keystore"
+          fi
+          ./gradlew --no-daemon :device-juice:assembleRelease
+          cp device-juice/app/build/outputs/apk/release/device-juice-release.apk device-juice.apk
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -48,4 +68,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "$GITHUB_REF_NAME" device-juice.apk device-juice/app/manifest.json \
-            --title "$GITHUB_REF_NAME" --notes "Debug build of Device Juice ($GITHUB_REF_NAME)."
+            --title "Device Juice ${GITHUB_REF_NAME#device-juice-v}" \
+            --notes "$(jq -r .releaseNotes device-juice/app/manifest.json) Install: see device-juice/README.md."
