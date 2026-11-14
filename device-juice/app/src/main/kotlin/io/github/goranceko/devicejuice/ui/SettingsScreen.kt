@@ -44,6 +44,7 @@ fun SettingsScreen(
     onRideStartAlert: (Boolean) -> Unit,
     onRideEndNotice: (Boolean) -> Unit,
     onPreRideNotice: (Boolean) -> Unit,
+    onStartupNotice: (Boolean) -> Unit,
     onBleExact: (Boolean) -> Unit,
     onThresholds: (Thresholds) -> Unit,
     onUnhide: (BatteryReading) -> Unit,
@@ -74,6 +75,8 @@ fun SettingsScreen(
 
         Section("Alerts")
         Card {
+            SwitchRow("Karoo turned on", "Notify when a battery is low at power-on", settings.startupNotice, onStartupNotice)
+            Divider()
             SwitchRow("Ride start", "Alert when a battery is low as you start", settings.rideStartAlert, onRideStartAlert)
             Divider()
             SwitchRow("Ride end", "Notify what to charge after the ride", settings.rideEndNotice, onRideEndNotice)

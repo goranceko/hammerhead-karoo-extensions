@@ -135,6 +135,7 @@ class MainActivity : ComponentActivity() {
                         onRideStartAlert = settingsStore::setRideStartAlert,
                         onRideEndNotice = settingsStore::setRideEndNotice,
                         onPreRideNotice = settingsStore::setPreRideNotice,
+                        onStartupNotice = settingsStore::setStartupNotice,
                         onBleExact = { on ->
                             when {
                                 !on -> settingsStore.setBleExact(false)

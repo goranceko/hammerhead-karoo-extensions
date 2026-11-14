@@ -14,6 +14,7 @@ tonight?" after it.
   battery colour (green, yellow, orange, red, grey) is only on the battery gauge, value and advice.
 - **Per part.** Multi-part groupsets (SRAM AXS) get one row per derailleur and shifter, with L/R tags.
   Di2 through Ki2 shows the exact % that Ki2 streams.
+- **When the Karoo turns on.** A notification if anything is red or orange.
 - **Before the ride.** Opening a ride page while not recording gives one notification if anything is
   low. Starting a ride shows an in-ride alert for anything red or orange.
 - **After the ride.** A notification says what to charge ("Charge Karoo tonight · 1 more before your
@@ -23,7 +24,7 @@ tonight?" after it.
   "~32 h left · rated life". Coin cells and heart-rate straps get no estimate.
 - **Data fields.** *Weakest battery* shows the emptiest device, coloured by level. *Battery warning* is
   a strip that stays blank until something is low.
-- **Settings.** Light mode, each alert on or off, the % where each colour starts, hidden and renamed
+- **Settings.** Light mode, each alert on or off (power-on, before the ride, ride start, ride end), exact % over Bluetooth (beta), the % where each colour starts, hidden and renamed
   devices. Long-press a device on the overview to pin it to the top of its group, rename it or hide it.
 
 Only devices in the active ride profile count for the verdict; the others sit dimmed at the bottom.

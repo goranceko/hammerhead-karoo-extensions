@@ -20,6 +20,7 @@ class SettingsStore(context: Context) {
         rideEndNotice = prefs.getBoolean(END_NOTICE, true),
         preRideNotice = prefs.getBoolean(PRE_RIDE_NOTICE, true),
         bleExact = prefs.getBoolean(BLE_EXACT, false),
+        startupNotice = prefs.getBoolean(STARTUP_NOTICE, true),
     )
 
     fun rename(id: String, name: String?) {
@@ -37,6 +38,7 @@ class SettingsStore(context: Context) {
     fun setRideStartAlert(on: Boolean) = prefs.edit().putBoolean(START_ALERT, on).apply()
     fun setRideEndNotice(on: Boolean) = prefs.edit().putBoolean(END_NOTICE, on).apply()
     fun setPreRideNotice(on: Boolean) = prefs.edit().putBoolean(PRE_RIDE_NOTICE, on).apply()
+    fun setStartupNotice(on: Boolean) = prefs.edit().putBoolean(STARTUP_NOTICE, on).apply()
     fun setBleExact(on: Boolean) = prefs.edit().putBoolean(BLE_EXACT, on).apply()
 
     fun flow(): Flow<Settings> = callbackFlow {
@@ -55,6 +57,7 @@ class SettingsStore(context: Context) {
         const val END_NOTICE = "ride_end_notice"
         const val PRE_RIDE_NOTICE = "pre_ride_notice"
         const val BLE_EXACT = "ble_exact"
-        val KEYS = setOf(NAMES, GREEN, YELLOW, ORANGE, START_ALERT, END_NOTICE, PRE_RIDE_NOTICE, BLE_EXACT)
+        const val STARTUP_NOTICE = "startup_notice"
+        val KEYS = setOf(NAMES, GREEN, YELLOW, ORANGE, START_ALERT, END_NOTICE, PRE_RIDE_NOTICE, BLE_EXACT, STARTUP_NOTICE)
     }
 }

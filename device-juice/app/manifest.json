@@ -6,6 +6,6 @@
   "latestVersionCode": 9,
   "developer": "goranceko",
   "description": "Battery overview of every paired device, before and after the ride.",
-  "releaseNotes": "Battery overview before and after the ride, ride start/end alerts, rides-left estimates, Weakest battery and Battery warning fields, settings, light mode.",
+  "releaseNotes": "Battery overview before and after the ride, power-on, pre-ride, ride start and ride end alerts, rides-left estimates, Weakest battery and Battery warning fields, settings, light mode.",
   "tags": ["tools"]
 }

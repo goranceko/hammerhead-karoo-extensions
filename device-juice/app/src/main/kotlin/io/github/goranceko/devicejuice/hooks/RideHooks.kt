@@ -29,6 +29,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
+import io.github.goranceko.devicejuice.model.DeviceKind
 import androidx.compose.ui.graphics.toArgb
 
 /**
@@ -82,6 +85,7 @@ class RideHooks(
                 }
             }
         }
+        jobs += scope.launch { onStartup() }
         jobs += scope.launch {
             karoo.consumerFlow<ActiveRidePage>().catch { Log.w(TAG, "ride page failed", it) }.collect {
                 if (rides.phase == RidePhase.IDLE && !preRideShown) onPreRide()
@@ -132,6 +136,19 @@ class RideHooks(
         }
     }
 
+    /**
+     * Karoo binds the extension at boot (SPIKE.md), so this runs once per power-on (and after an app update).
+     * Waits for the paired devices to load, then notifies only when something is red or orange and no ride is running.
+     */
+    private suspend fun onStartup() {
+        val loaded = withTimeoutOrNull(STARTUP_WAIT_MS) {
+            state.first { s -> s != null && s.readings.any { it.kind != DeviceKind.HEAD_UNIT } }
+        } ?: return
+        if (!settings.get().startupNotice || rides.phase == RidePhase.RECORDING || rides.phase == RidePhase.PAUSED) return
+        val m = RideMessages.preRide(loaded.readings.filter { it.enabled }) ?: return
+        notify("devicejuice-startup", m, ACTION_MAIN)
+    }
+
     private fun onPreRide() {
         val m = RideMessages.preRide(active)?.takeIf { settings.get().preRideNotice } ?: return
         preRideShown = true
@@ -160,5 +177,6 @@ class RideHooks(
         const val ACTION_MAIN = "io.github.goranceko.devicejuice.MAIN"
         const val ACTION_POST_RIDE = "io.github.goranceko.devicejuice.POST_RIDE"
         private const val END_SETTLE_MS = 20_000L
+        private const val STARTUP_WAIT_MS = 120_000L
     }
 }
