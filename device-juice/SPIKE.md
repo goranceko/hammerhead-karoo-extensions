@@ -97,7 +97,7 @@ becomes the unit-test fixtures (PLAN.md 6.4).
 
 | # | Question | Answer | Evidence |
 |---|---|---|---|
-| 1 | Does `SavedDevices` refresh mid-ride / at ride end? | **No.** Over 40 min (two rides, pauses, ride end, +5 min) no device's `lastBattery` or `lastBatteryUpdate` changed, and every fresh subscription matched the cache (`sameAsCached=true`). Re-subscribing (fallback (a) in PLAN.md 6.3) does not help. | `SAVED_DEVICES trigger=periodic/pause/ride_end/ride_end+5m … sameAsCached=true` |
+| 1 | Does `SavedDevices` refresh mid-ride / at ride end? | **No** (superseded by run 2: true only for BLE devices). Over 40 min (two rides, pauses, ride end, +5 min) no device's `lastBattery` or `lastBatteryUpdate` changed, and every fresh subscription matched the cache (`sameAsCached=true`). Re-subscribing (fallback (a) in PLAN.md 6.3) does not help. | `SAVED_DEVICES trigger=periodic/pause/ride_end/ride_end+5m … sameAsCached=true` |
 | 1b | When does a reading change? | **When a sensor (re)connects.** Turning the HR strap off and on in Karoo Sensors pushed a new event to the existing consumer (`trigger=update n=4`) with a new `lastBatteryUpdate` for that device only. All other timestamps were from when those sensors last connected. | `10:43:39 SAVED_DEVICES trigger=update n=4` |
 | 1c | Other `SavedDevices` events | Changing the ride profile flips `enabled` for profile-specific sensors (`trigger=update n=2/3`). `enabled` = used by the active profile. | `10:10:56 ACTIVE_PROFILE` followed by `update n=2` |
 | 4 | Does `ActiveRidePage` fire while Idle? | **Yes**, on every page swipe on the ride screen before Start. `ActiveRideProfile` fires on profile change while Idle. The pre-ride trigger in PLAN.md 3.2 works. | `10:11:00–10:11:38 ACTIVE_PAGE phase=IDLE` |
@@ -108,6 +108,21 @@ becomes the unit-test fixtures (PLAN.md 6.4).
 | – | Karoo % | `BATTERY_PERCENT` streams in every ride state. | `STREAM KAROO_BATTERY` |
 | – | Service lifetime | The service was bound right after install and ran the whole session. Rebind after reboot not tested yet. | `BOOT` |
 
-Still to run, with the bike: Q2 (Di2 parts via Ki2 stream), Q3 (both pedals awake), Q7 (Ki2 %), and a reboot to check the service rebinds.
+### Run 2: 14.11.2026, outdoor ride ~3 h 10 min, all devices on the bike
+
+Recording 10:08–13:19 UTC (11:08–14:19 CET), Karoo restarted before the ride.
+
+| # | Question | Answer | Evidence |
+|---|---|---|---|
+| 1 | Does `SavedDevices` refresh mid-ride / at ride end? | **Yes for ANT+ and Ki2 devices, about every 15 min each** (Assioma, Di2 via Ki2, Varia radar, Varia light), pushed to the existing consumer as `trigger=update`. Level changes show up mid-ride: Assioma GOOD→OK at 11:19:59, Varia light and radar GOOD→OK at 13:07. **BLE devices refresh only on connect** (Whoop: 10:05:34 only). Nothing extra at ride end; the last reading is at most ~15 min old. Fresh subscriptions always matched the cache. **Run 1's "no" was an artefact of having only a BLE strap.** | `trigger=update n=5…55 phase=RECORDING` |
+| 2 | Di2 component keys / shifters | **None.** Di2 via Ki2 is one `EXTENSION` device with no `components`, level NEW all ride. Ki2's switch (shifter) battery data type never streamed (`KI2_SWITCH_BATTERY NotAvailable`). Shifter coin cells are not visible to us. | `SAVED_DEVICES` Di2 Orbea, `STREAM KI2_SWITCH_BATTERY` |
+| 3 | Assioma L/R separate? | **No.** With both pedals awake, one device with a single `RIGHT_SIDE_POWER` component (its level equals the device level). The left pedal's battery is not exposed. | `SAVED_DEVICES` Assioma Pedals |
+| 7 | Can we stream Ki2's data type? | **Yes.** `ki2::DATATYPE_SHIFTING_BATTERY_PERCENTAGE` streamed `FIELD_SINGLE_ID=100.0` (the real Di2 %) from 10:09 on. The native `SHIFTING_BATTERY` stream also carries Ki2's level (ordinal 0 = NEW, source `ki2::…`). `Ki2Source` can move to v1. | `10:09:10 STREAM KI2_SHIFTING_BATTERY_PCT Streaming` |
+| – | Service after reboot | **Rebinds on its own** after every Karoo restart without opening the app. | `BOOT spike recorder started` 10:05, 19:03, 21:19, 21:25 |
+| – | Karoo % | 98 % → 91 % by the end of the day; streams in all states. | `STREAM KAROO_BATTERY` |
+
+Notes: the extension's process was gone between 13:21 and 19:03 UTC (no `ride_end+5m` checkpoint), most likely because the Karoo was switched off. After the 19:03 boot the Karoo started recording at once (`RIDE_START` 1 s after boot) and never logged an end. Log timestamps can jump back a few seconds right after boot while the Karoo clock syncs.
+
+All milestone-0 questions are answered.
 
 Known spike-app issues: **Share** does nothing on the Karoo (no share targets; use Save to Downloads or adb), and the saved file gets an extra `.txt` extension.

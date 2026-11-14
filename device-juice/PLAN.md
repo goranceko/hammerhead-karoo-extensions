@@ -266,13 +266,13 @@ If `SavedDevices` does not refresh at ride end: (a) re-subscribe after a short d
 
 | # | Question | Status | Needs |
 |---|---|---|---|
-| 1 | Does `SavedDevices` refresh mid-ride / at ride end? | **Answered (12.11.2026): no.** Readings change only when a sensor (re)connects; see SPIKE.md Results | Design: show "as of" times; post-ride drop needs another source |
-| 2 | Di2 component keys; are shifters listed? | **Unverified** | Device test |
-| 3 | Are Assioma L and R separate entries? | **Unverified** | Device test |
+| 1 | Does `SavedDevices` refresh mid-ride / at ride end? | **Answered (14.11.2026):** ANT+ and Ki2 devices refresh about every 15 min during a ride; BLE devices only on connect; no extra refresh at ride end. See SPIKE.md Results | Show "as of" times; BLE readings go stale |
+| 2 | Di2 component keys; are shifters listed? | **Answered (14.11.2026):** via Ki2 there are no components and no shifter levels (Ki2 switch data type not available). Native AXS lists FRONT/REAR_DERAILLEUR, LEFT/RIGHT_SHIFTER | none |
+| 3 | Are Assioma L and R separate entries? | **Answered (14.11.2026): no.** One device, one `RIGHT_SIDE_POWER` component; left pedal battery not exposed | Show one Assioma row |
 | 4 | Does `ActiveRidePage` fire while Idle (pre-ride trigger)? | **Answered (12.11.2026): yes**, on each page swipe before Start | none |
 | 5 | Di2 paired natively or via Ki2? | **Decided**: via Ki2 | none |
 | 6 | Assioma / HR strap on BLE or ANT+? Only BLE allows a real % | Open | Rider |
-| 7 | Can one extension stream another extension's data type? | **Hypothesis** | Device test, milestone 0. Decides whether `Ki2Source` is v1 |
+| 7 | Can one extension stream another extension's data type? | **Answered (14.11.2026): yes.** Ki2's shifting battery % streams to us | `Ki2Source` moves to v1 |
 | 8 | Rated-life values in 5.2 | **Hypothesis** | Check manufacturer specs |
 | 9 | Level-only estimates need several rides to learn and stay coarse | Known limitation | none |
 | 10 | Karoo OS updates could change `SavedDevices` contents | Risk | none |
