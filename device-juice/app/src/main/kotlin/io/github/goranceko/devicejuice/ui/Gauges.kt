@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.goranceko.devicejuice.model.Band
 import io.github.goranceko.devicejuice.model.BatteryReading
+import io.github.goranceko.devicejuice.model.DeviceKind
 import io.github.goranceko.devicejuice.ui.theme.Palette
 import io.hammerhead.karooext.models.BatteryStatus
 
@@ -132,10 +133,11 @@ fun LevelRing(r: BatteryReading?, band: Band, size: Dp, content: @Composable () 
 /** Device-type icon on a soft circle, both in the band colour (like Karoo's own Sensors list), with an L/R tag for paired parts. */
 @Composable
 fun KindBadge(r: BatteryReading, size: Dp = 40.dp) {
-    val color = Palette.accentOf(r.kind)
     val icon = Icons.of(r)
-    // A whole electronic groupset (Di2) gets a solid badge so it stands out from its own parts and the AXS rows.
-    val solid = icon == Icons.groupset
+    // Groupsets get solid badges: a whole-system device (Di2) in blue, the parts of a multi-part groupset (AXS) in red.
+    val groupsetPart = r.partName != null && (r.kind == DeviceKind.SHIFTING || r.kind == DeviceKind.SHIFTER_COIN)
+    val solid = icon == Icons.groupset || groupsetPart
+    val color = if (groupsetPart) Palette.axsRed else Palette.accentOf(r.kind)
     Box(Modifier.size(size)) {
         Box(
             Modifier.size(size).background(if (solid) color else color.copy(alpha = 0.16f), CircleShape),
@@ -151,7 +153,7 @@ fun KindBadge(r: BatteryReading, size: Dp = 40.dp) {
                     .offset(x = chip * 0.18f, y = chip * 0.12f)
                     .size(chip)
                     .border(1.5.dp, Palette.bg, CircleShape)
-                    .background(color, CircleShape),
+                    .background(if (solid) Palette.fg else color, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(tag, color = Palette.bg, fontSize = (chip.value * 0.62f).sp, fontWeight = FontWeight.ExtraBold, lineHeight = (chip.value * 0.62f).sp)

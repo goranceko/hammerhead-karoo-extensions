@@ -33,6 +33,9 @@ object Palette {
      * Fixed accent per sensor type, for the type badge only. Hues stay clear of the battery colours, except radar, which takes a soft Varia red
      * (red, orange, yellow, green), which keep their meaning on the gauge, value and advice.
      */
+    /** Solid badge colour for the parts of a multi-part groupset (SRAM AXS). Deeper than the battery red. */
+    val axsRed = Color(0xFFD23A3F)
+
     fun accentOf(kind: DeviceKind): Color = when (kind) {
         DeviceKind.SHIFTING, DeviceKind.SHIFTER_COIN -> Color(0xFF5AA9FF)
         DeviceKind.POWER -> Color(0xFFB08CFF)
