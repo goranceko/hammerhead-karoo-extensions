@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -19,6 +20,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -160,3 +162,17 @@ fun BandBadge(band: Band, size: Dp = 22.dp) {
     Image(Icons.badge(band), contentDescription = band.name, modifier = Modifier.size(size))
 }
 
+
+/** Small push-pin after a pinned device's name. */
+@Composable
+fun PinMark(size: Dp = 12.dp) {
+    Canvas(Modifier.padding(start = 4.dp).size(size)) {
+        val w = this.size.width
+        val c = Palette.sub
+        rotate(45f) {
+            drawRoundRect(c, topLeft = Offset(w * 0.3f, w * 0.05f), size = Size(w * 0.4f, w * 0.35f), cornerRadius = CornerRadius(w * 0.08f))
+            drawLine(c, Offset(w * 0.15f, w * 0.42f), Offset(w * 0.85f, w * 0.42f), strokeWidth = w * 0.12f, cap = StrokeCap.Round)
+            drawLine(c, Offset(w * 0.5f, w * 0.45f), Offset(w * 0.5f, w * 0.98f), strokeWidth = w * 0.09f, cap = StrokeCap.Round)
+        }
+    }
+}

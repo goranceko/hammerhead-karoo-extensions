@@ -29,6 +29,8 @@ data class BatteryReading(
     val deviceName: String = name,
     /** "Left shifter" for a component row, null otherwise. */
     val partName: String? = null,
+    /** Rider pinned it: first in its group. */
+    val pinned: Boolean = false,
 ) {
     /** Short label for tight layouts: the part name, or the device name. */
     val title: String get() = partName ?: deviceName

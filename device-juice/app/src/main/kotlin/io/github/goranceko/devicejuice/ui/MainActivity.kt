@@ -8,7 +8,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import io.github.goranceko.devicejuice.data.BatteryRepository
-import io.github.goranceko.devicejuice.data.HiddenDevices
+import io.github.goranceko.devicejuice.data.hiddenDevices
+import io.github.goranceko.devicejuice.data.pinnedDevices
 import io.github.goranceko.devicejuice.model.Band
 import io.github.goranceko.devicejuice.model.BatteryReading
 import io.github.goranceko.devicejuice.model.DeviceKind
@@ -65,8 +66,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         karoo = KarooSystemService(applicationContext)
         karoo.connect()
-        val hiddenDevices = HiddenDevices(this)
-        val stateFlow = BatteryRepository(karoo, hiddenDevices).state()
+        val hiddenDevices = hiddenDevices(this)
+        val pinnedDevices = pinnedDevices(this)
+        val stateFlow = BatteryRepository(karoo, hiddenDevices, pinnedDevices).state()
         val spikeLog = if (BuildConfig.SPIKE_LOGGING) SpikeLogs.get(this) else null
 
         setContent {
@@ -84,13 +86,14 @@ class MainActivity : ComponentActivity() {
                     state = state,
                     now = System.currentTimeMillis(),
                     onHide = {
-                        hiddenDevices.hide(it.id)
+                        hiddenDevices.add(it.id)
                         lastHidden = it
                     },
-                    onShowHidden = { hiddenDevices.get().forEach(hiddenDevices::unhide) },
+                    onTogglePin = { if (it.pinned) pinnedDevices.remove(it.id) else pinnedDevices.add(it.id) },
+                    onShowHidden = { hiddenDevices.get().forEach(hiddenDevices::remove) },
                     undo = lastHidden,
                     onUndo = {
-                        lastHidden?.let { hiddenDevices.unhide(it.id) }
+                        lastHidden?.let { hiddenDevices.remove(it.id) }
                         lastHidden = null
                     },
                     footer = {
@@ -103,7 +106,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
 
     override fun onDestroy() {
         karoo.disconnect()

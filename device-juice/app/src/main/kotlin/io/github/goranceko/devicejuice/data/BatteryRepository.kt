@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.onStart
 /** Live overview rows: SavedDevices + Karoo % + Ki2 %, banded, sorted, hidden rows removed. */
 class BatteryRepository(
     private val karoo: KarooSystemService,
-    private val hiddenDevices: HiddenDevices,
+    private val hiddenDevices: DeviceIdSet,
+    private val pinnedDevices: DeviceIdSet,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
     data class State(val readings: List<BatteryReading>, val hiddenCount: Int)
@@ -21,10 +22,10 @@ class BatteryRepository(
         karoo.savedDevicesFlow().onStart<SavedDevices?> { emit(null) },
         karoo.karooBatteryFlow().onStart { emit(null) },
         karoo.ki2BatteryFlow(clock).onStart<Ki2Battery?> { emit(null) },
-        hiddenDevices.flow(),
+        combine(hiddenDevices.flow(), pinnedDevices.flow()) { hidden, pinned -> hidden to pinned },
         ticker(),
-    ) { saved, karooPercent, ki2, hidden, now ->
-        val all = buildReadings(saved, karooPercent, ki2, now)
+    ) { saved, karooPercent, ki2, (hidden, pinned), now ->
+        val all = buildReadings(saved, karooPercent, ki2, now, pinned = pinned)
         // The Karoo itself can't be hidden.
         val shown = all.filter { r -> r.id == KAROO_ID || (r.id !in hidden && r.deviceId !in hidden) }
         State(shown, all.size - shown.size)

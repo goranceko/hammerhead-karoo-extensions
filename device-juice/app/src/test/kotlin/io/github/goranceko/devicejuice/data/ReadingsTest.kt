@@ -159,4 +159,15 @@ class ReadingsTest {
         val rows = buildReadings(f.savedDevices, null, null, f.capturedAt, hidden = setOf("10006-34-5"))
         assertTrue(rows.none { it.deviceId == "10006-34-5" })
     }
+
+    @Test
+    fun `pinned device comes first within its band only`() {
+        val f = Fixtures.load("run2-midride")
+        val rows = buildReadings(f.savedDevices, karooPercent = 99, ki2 = null, now = f.capturedAt, pinned = setOf("ki2::10002-1-5"))
+        val greens = rows.filter { it.band == Band.GREEN }
+        assertEquals("Di2 Orbea", greens.first().name)
+        assertTrue(greens.first().pinned)
+        // Pinning never lifts a device above a more urgent band.
+        assertEquals(Band.ORANGE, rows.first().band)
+    }
 }

@@ -23,7 +23,8 @@ private const val KI2_DEVICE_PREFIX = "ki2::"
  * - A Ki2 % newer than the Karoo level wins for Ki2 devices without components.
  * - Readings older than [Bands.STALE_AFTER_MS] are grey and `stale`.
  * - [hidden] holds row ids; a device id also hides all its components.
- * - Sort: band (red first), lowest value, name.
+ * - [pinned] works the same way and puts those rows first within their band.
+ * - Sort: band (red first), pinned, lowest value, name.
  */
 fun buildReadings(
     saved: SavedDevices?,
@@ -31,6 +32,7 @@ fun buildReadings(
     ki2: Ki2Battery?,
     now: Long,
     hidden: Set<String> = emptySet(),
+    pinned: Set<String> = emptySet(),
 ): List<BatteryReading> {
     val rows = mutableListOf<BatteryReading>()
     karooPercent?.let {
@@ -67,7 +69,8 @@ fun buildReadings(
     }
     return rows
         .filter { it.id !in hidden }
-        .sortedWith(compareBy<BatteryReading>({ it.band.ordinal }, { it.sortValue }, { it.name }))
+        .map { if (it.id in pinned || it.deviceId in pinned) it.copy(pinned = true) else it }
+        .sortedWith(compareBy<BatteryReading>({ it.band.ordinal }, { !it.pinned }, { it.sortValue }, { it.name }))
 }
 
 private fun levelReading(

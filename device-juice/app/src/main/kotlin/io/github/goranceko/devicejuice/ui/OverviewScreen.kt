@@ -19,7 +19,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,7 +52,7 @@ private val CardShape = RoundedCornerShape(16.dp)
 /**
  * Pre-ride battery overview (PLAN.md 3.3, mockup "Before the ride").
  * Only devices in the active ride profile count for the verdict; the rest sit dimmed at the bottom.
- * Long-press a device to hide it; [undo] shows an undo bar for the last hidden one.
+ * Long-press a device to pin or hide it; [undo] shows an undo bar for the last hidden one.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -54,6 +60,7 @@ fun OverviewScreen(
     state: BatteryRepository.State,
     now: Long,
     onHide: (BatteryReading) -> Unit,
+    onTogglePin: (BatteryReading) -> Unit,
     onShowHidden: () -> Unit,
     undo: BatteryReading? = null,
     onUndo: () -> Unit = {},
@@ -77,19 +84,19 @@ fun OverviewScreen(
             VerdictCard(active)
             if (attention.isNotEmpty()) {
                 SectionLabel("Needs attention", attention.size)
-                attention.forEach { AttentionCard(it, now, onHide) }
+                attention.forEach { AttentionCard(it, now, onHide, onTogglePin) }
             }
             if (healthy.isNotEmpty()) {
                 SectionLabel("Healthy", healthy.size)
-                CompactList(healthy, now, onHide)
+                CompactList(healthy, now, onHide, onTogglePin)
             }
             if (unseen.isNotEmpty()) {
                 SectionLabel("Not seen recently", unseen.size)
-                CompactList(unseen, now, onHide)
+                CompactList(unseen, now, onHide, onTogglePin)
             }
             if (otherProfile.isNotEmpty()) {
                 SectionLabel("Not in this ride profile", otherProfile.size)
-                CompactList(otherProfile, now, onHide, Modifier.alpha(0.55f))
+                CompactList(otherProfile, now, onHide, onTogglePin, Modifier.alpha(0.55f))
             }
             if (state.hiddenCount > 0) {
                 Text(
@@ -100,7 +107,7 @@ fun OverviewScreen(
                     modifier = Modifier.clip(RoundedCornerShape(8.dp)).combinedClickable(onClick = onShowHidden).padding(horizontal = 4.dp, vertical = 8.dp),
                 )
             }
-            Text("Long-press a device to hide it.", color = Palette.faint, fontSize = 11.sp, modifier = Modifier.padding(start = 4.dp))
+            Text("Long-press a device to pin or hide it.", color = Palette.faint, fontSize = 11.sp, modifier = Modifier.padding(start = 4.dp))
             footer()
         }
         if (undo != null) UndoBar(undo, onUndo, Modifier.align(Alignment.BottomCenter))
@@ -181,22 +188,27 @@ private fun SectionLabel(text: String, count: Int) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun AttentionCard(r: BatteryReading, now: Long, onHide: (BatteryReading) -> Unit) {
+private fun AttentionCard(r: BatteryReading, now: Long, onHide: (BatteryReading) -> Unit, onTogglePin: (BatteryReading) -> Unit) {
     val color = Palette.of(r.band)
+    var menu by remember { mutableStateOf(false) }
     val tint = if (r.band == Band.RED) Brush.horizontalGradient(listOf(color.copy(alpha = 0.22f), Palette.card)) else Brush.horizontalGradient(listOf(Palette.cardHigh, Palette.card))
     Column(
         Modifier
             .fillMaxWidth()
             .clip(CardShape)
             .background(tint)
-            .combinedClickable(onClick = {}, onLongClick = { onHide(r) })
+            .combinedClickable(onClick = {}, onLongClick = { menu = true })
             .padding(12.dp),
     ) {
+        DeviceMenu(r, menu, { menu = false }, onHide, onTogglePin)
         Row(verticalAlignment = Alignment.CenterVertically) {
             KindBadge(r, 36.dp)
             Spacer(Modifier.width(8.dp))
             Column(Modifier.weight(1f)) {
-                Text(r.title, color = Palette.fg, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = Condensed, maxLines = 2, lineHeight = 17.sp, overflow = TextOverflow.Ellipsis)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(r.title, color = Palette.fg, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = Condensed, maxLines = 2, lineHeight = 17.sp, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                    if (r.pinned) PinMark()
+                }
                 if (r.partName != null) Text(r.deviceName, color = Palette.sub, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(subtitle(r, now), color = Palette.faint, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
@@ -226,20 +238,25 @@ private fun AttentionCard(r: BatteryReading, now: Long, onHide: (BatteryReading)
 /** Dense rows for devices that need no action: type icon, name, battery glyph, value. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun CompactList(rows: List<BatteryReading>, now: Long, onHide: (BatteryReading) -> Unit, modifier: Modifier = Modifier) {
+private fun CompactList(rows: List<BatteryReading>, now: Long, onHide: (BatteryReading) -> Unit, onTogglePin: (BatteryReading) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxWidth().clip(CardShape).background(Palette.card)) {
         rows.forEachIndexed { i, r ->
+            var menu by remember(r.id) { mutableStateOf(false) }
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .combinedClickable(onClick = {}, onLongClick = { if (r.kind != DeviceKind.HEAD_UNIT) onHide(r) })
+                    .combinedClickable(onClick = {}, onLongClick = { menu = true })
                     .padding(horizontal = 10.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                DeviceMenu(r, menu, { menu = false }, onHide, onTogglePin)
                 KindBadge(r, 30.dp)
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(r.title, color = Palette.fg, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(r.title, color = Palette.fg, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        if (r.pinned) PinMark()
+                    }
                     Text(caption(r, now), color = Palette.faint, fontSize = 11.sp, lineHeight = 13.sp, maxLines = if (r.band == Band.GREY) 2 else 1, overflow = TextOverflow.Ellipsis)
                 }
                 Spacer(Modifier.width(8.dp))
@@ -253,6 +270,20 @@ private fun CompactList(rows: List<BatteryReading>, now: Long, onHide: (BatteryR
                 }
             }
             if (i < rows.lastIndex) Box(Modifier.padding(start = 50.dp).fillMaxWidth().height(1.dp).background(Palette.line))
+        }
+    }
+}
+
+/** Long-press menu: pin to the top of its group, or hide. The Karoo can be pinned but not hidden. */
+@Composable
+private fun DeviceMenu(r: BatteryReading, expanded: Boolean, onDismiss: () -> Unit, onHide: (BatteryReading) -> Unit, onTogglePin: (BatteryReading) -> Unit) {
+    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss, modifier = Modifier.background(Palette.cardHigh)) {
+        DropdownMenuItem(
+            text = { Text(if (r.pinned) "Unpin" else "Pin to top", color = Palette.fg) },
+            onClick = { onDismiss(); onTogglePin(r) },
+        )
+        if (r.kind != DeviceKind.HEAD_UNIT) {
+            DropdownMenuItem(text = { Text("Hide", color = Palette.fg) }, onClick = { onDismiss(); onHide(r) })
         }
     }
 }
