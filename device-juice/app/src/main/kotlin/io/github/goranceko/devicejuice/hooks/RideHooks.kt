@@ -4,6 +4,9 @@ import android.content.Context
 import android.util.Log
 import io.github.goranceko.devicejuice.R
 import io.github.goranceko.devicejuice.data.BatteryRepository
+import io.github.goranceko.devicejuice.estimate.DeviceRide
+import io.github.goranceko.devicejuice.estimate.RideEntry
+import io.github.goranceko.devicejuice.estimate.RideLogStore
 import io.github.goranceko.devicejuice.data.hiddenDevices
 import io.github.goranceko.devicejuice.data.pinnedDevices
 import io.github.goranceko.devicejuice.karoo.consumerFlow
@@ -40,20 +43,33 @@ class RideHooks(private val context: Context, private val karoo: KarooSystemServ
     private val rides = RideTransitionDetector()
     private val jobs = mutableListOf<Job>()
     private var preRideShown = false
+    private val rideLog = RideLogStore(context)
+    /** Recording time of the current ride, pauses excluded. */
+    private var recordedMs = 0L
+    private var recordingSince: Long? = null
     private lateinit var state: StateFlow<BatteryRepository.State?>
 
     private val active: List<BatteryReading> get() = state.value?.readings.orEmpty().filter { it.enabled }
 
     fun start() {
-        state = BatteryRepository(karoo, hiddenDevices(context), pinnedDevices(context)).state()
+        state = BatteryRepository(karoo, hiddenDevices(context), pinnedDevices(context), rideLog).state()
             .catch { Log.w(TAG, "battery state failed", it) }
             .stateIn(scope, SharingStarted.Eagerly, null)
         jobs += scope.launch {
             karoo.consumerFlow<RideState>().catch { Log.w(TAG, "ride state failed", it) }.collect { s ->
                 when (rides.onPhase(s.toPhase())) {
-                    RideTransition.RIDE_START -> onRideStart()
-                    RideTransition.RIDE_END -> onRideEnd()
-                    else -> Unit
+                    RideTransition.RIDE_START -> {
+                        recordedMs = 0
+                        recordingSince = if (s is RideState.Recording) now() else null
+                        onRideStart()
+                    }
+                    RideTransition.PAUSE -> pauseClock()
+                    RideTransition.RESUME -> recordingSince = now()
+                    RideTransition.RIDE_END -> {
+                        pauseClock()
+                        onRideEnd(recordedMs)
+                    }
+                    null -> Unit
                 }
             }
         }
@@ -83,12 +99,23 @@ class RideHooks(private val context: Context, private val karoo: KarooSystemServ
         )
     }
 
-    private fun onRideEnd() {
+    private fun now() = System.currentTimeMillis()
+
+    private fun pauseClock() {
+        recordingSince?.let { recordedMs += now() - it }
+        recordingSince = null
+    }
+
+    private fun onRideEnd(recordingMs: Long) {
         preRideShown = false
         jobs += scope.launch {
             // ANT+ devices refresh about every 15 min, BLE on connect (SPIKE.md Q1); give the last values a moment.
             delay(END_SETTLE_MS)
-            prefs.edit().putLong(KEY_END_AT, System.currentTimeMillis()).apply()
+            prefs.edit().putLong(KEY_END_AT, now()).apply()
+            val start = RideMessages.decode(prefs.getString(KEY_START, null))
+            val devices = active.mapNotNull { r -> start[r.id]?.let { r.id to DeviceRide(it, StartValue(r.percent, r.level)) } }.toMap()
+            if (devices.isNotEmpty()) rideLog.append(RideEntry(now(), recordingMs, devices))
+            // Keep the snapshot for the post-ride screen; the next ride start overwrites it.
             val m = RideMessages.rideEnd(active) ?: return@launch
             notify("devicejuice-ride-end", m, ACTION_POST_RIDE)
         }

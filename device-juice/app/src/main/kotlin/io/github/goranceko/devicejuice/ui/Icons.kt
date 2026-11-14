@@ -107,7 +107,9 @@ object Icons {
 
     private const val DISC_OK = "M22,12a10,10 0 1,1 -20,0a10,10 0 1,1 20,0z"
 
-    private val badges: Map<Band, ImageVector> by lazy {
+    private val badgeCache = mutableMapOf<Pair<Boolean, Band>, ImageVector>()
+
+    private fun buildBadges(): Map<Band, ImageVector> =
         mapOf(
             Band.GREEN to badge("ok", Palette.green, listOf(DISC_OK), listOf("M7 12.5l3.2 3.2L17 9")),
             Band.YELLOW to badge("half", Palette.yellow, listOf("M12 2a10 10 0 0 1 0 20z", "M12,2a10,10 0 0,0 0,20v-2.6a7.4,7.4 0 0,1 0,-14.8z"), emptyList()),
@@ -115,7 +117,10 @@ object Icons {
             Band.RED to badge("stop", Palette.red, listOf("M8 2h8l6 6v8l-6 6H8l-6-6V8z"), listOf("M12 6.5v7M12 16.8v.4")),
             Band.GREY to badge("unknown", Palette.grey, listOf(DISC_OK), listOf("M9.3 9.3a2.8 2.8 0 1 1 3.9 2.6c-.8.4-1.2 1-1.2 1.8M12 17v.3")),
         )
-    }
 
-    fun badge(band: Band): ImageVector = badges.getValue(band)
+    /** Badges are built in their real colours (the cut-outs use the background), one set per palette. */
+    fun badge(band: Band): ImageVector {
+        val key = Palette.light to band
+        return badgeCache[key] ?: buildBadges().also { all -> all.forEach { (b, v) -> badgeCache[Palette.light to b] = v } }.getValue(band)
+    }
 }

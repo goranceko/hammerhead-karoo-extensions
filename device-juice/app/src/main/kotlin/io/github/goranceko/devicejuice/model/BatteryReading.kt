@@ -1,5 +1,6 @@
 package io.github.goranceko.devicejuice.model
 
+import io.github.goranceko.devicejuice.estimate.Estimate
 import io.hammerhead.karooext.models.BatteryStatus
 
 enum class ReadingSource { SAVED_DEVICES, KAROO, KI2 }
@@ -31,6 +32,8 @@ data class BatteryReading(
     val partName: String? = null,
     /** Rider pinned it: first in its group. */
     val pinned: Boolean = false,
+    /** How long it will last (milestone 5), null when unknown. */
+    val estimate: Estimate? = null,
 ) {
     /** Short label for tight layouts: the part name, or the device name. */
     val title: String get() = partName ?: deviceName

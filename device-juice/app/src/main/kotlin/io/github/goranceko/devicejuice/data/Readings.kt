@@ -1,5 +1,8 @@
 package io.github.goranceko.devicejuice.data
 
+import io.github.goranceko.devicejuice.estimate.Estimate
+import io.github.goranceko.devicejuice.estimate.Estimator
+import io.github.goranceko.devicejuice.estimate.RideEntry
 import io.github.goranceko.devicejuice.model.Band
 import io.github.goranceko.devicejuice.model.Bands
 import io.github.goranceko.devicejuice.model.BatteryReading
@@ -24,6 +27,8 @@ private const val KI2_DEVICE_PREFIX = "ki2::"
  * - Readings older than [Bands.STALE_AFTER_MS] are grey and `stale`.
  * - [hidden] holds row ids; a device id also hides all its components.
  * - [pinned] works the same way and puts those rows first within their band.
+ * - Each row gets an [Estimate] from [log]. A learned estimate shorter than a typical ride moves the row
+ *   one band more urgent (PLAN.md 5.1, last rule).
  * - Sort: band (red first), pinned, lowest value, name.
  */
 fun buildReadings(
@@ -33,6 +38,7 @@ fun buildReadings(
     now: Long,
     hidden: Set<String> = emptySet(),
     pinned: Set<String> = emptySet(),
+    log: List<RideEntry> = emptyList(),
 ): List<BatteryReading> {
     val rows = mutableListOf<BatteryReading>()
     karooPercent?.let {
@@ -70,7 +76,21 @@ fun buildReadings(
     return rows
         .filter { it.id !in hidden }
         .map { if (it.id in pinned || it.deviceId in pinned) it.copy(pinned = true) else it }
+        .map { withEstimate(it, log) }
         .sortedWith(compareBy<BatteryReading>({ it.band.ordinal }, { !it.pinned }, { it.sortValue }, { it.name }))
+}
+
+private fun withEstimate(r: BatteryReading, log: List<RideEntry>): BatteryReading {
+    val e = Estimator.estimate(r, log) ?: return r
+    val typical = Estimator.typicalRideHours(log)
+    val short = e.basis == Estimate.Basis.LEARNED && typical != null && e.hoursLeft < typical
+    val band = if (short) when (r.band) {
+        Band.GREEN -> Band.YELLOW
+        Band.YELLOW -> Band.ORANGE
+        Band.ORANGE -> Band.RED
+        else -> r.band
+    } else r.band
+    return r.copy(estimate = e, band = band)
 }
 
 private fun levelReading(

@@ -72,6 +72,7 @@ fun OverviewScreen(
     undo: BatteryReading? = null,
     onUndo: () -> Unit = {},
     afterRide: AfterRide? = null,
+    onToggleLight: () -> Unit = {},
     footer: @Composable () -> Unit = {},
 ) = CompositionLocalProvider(LocalAfterRide provides afterRide) {
     val active = state.readings.filter { it.enabled }
@@ -115,7 +116,16 @@ fun OverviewScreen(
                     modifier = Modifier.clip(RoundedCornerShape(8.dp)).combinedClickable(onClick = onShowHidden).padding(horizontal = 4.dp, vertical = 8.dp),
                 )
             }
-            Text("Long-press a device to pin or hide it.", color = Palette.faint, fontSize = 11.sp, modifier = Modifier.padding(start = 4.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("Long-press a device to pin or hide it.", color = Palette.faint, fontSize = 11.sp, modifier = Modifier.padding(start = 4.dp).weight(1f))
+                Text(
+                    if (Palette.light) "Dark mode" else "Light mode",
+                    color = Palette.sub,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onToggleLight).padding(horizontal = 6.dp, vertical = 8.dp),
+                )
+            }
             footer()
         }
         if (undo != null) UndoBar(undo, onUndo, Modifier.align(Alignment.BottomCenter))
@@ -240,6 +250,10 @@ private fun AttentionCard(r: BatteryReading, now: Long, onHide: (BatteryReading)
                 rangeOf(r.level)?.takeIf { r.percent == null }?.let { Text(it, color = Palette.faint, fontSize = 11.sp) }
             }
         }
+        r.estimate?.let { e ->
+            Spacer(Modifier.height(4.dp))
+            Text(e.label, color = Palette.sub, fontSize = 12.sp, modifier = Modifier.padding(start = 11.dp))
+        }
     }
 }
 
@@ -306,7 +320,7 @@ private fun caption(r: BatteryReading, now: Long, drops: Map<String, String>): S
     val drop = drops[r.id]
     val who = if (r.partName != null) r.deviceName else kindLabel(r.kind)
     val age = if (r.source == ReadingSource.KAROO) null else ageText(r.updatedAt, now)
-    return listOfNotNull(who, if (r.source == ReadingSource.KI2) "via Ki2" else null, drop ?: age).joinToString(" · ")
+    return listOfNotNull(who, if (r.source == ReadingSource.KI2) "via Ki2" else null, drop ?: r.estimate?.amount ?: age).joinToString(" · ")
 }
 
 private fun kindLabel(kind: DeviceKind): String = when (kind) {

@@ -143,7 +143,7 @@ fun KindBadge(r: BatteryReading, size: Dp = 40.dp) {
             Modifier.size(size).background(if (solid) color else color.copy(alpha = 0.16f), CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, contentDescription = r.kind.name, tint = if (solid) Palette.bg else color, modifier = Modifier.size(size * 0.62f))
+            Icon(icon, contentDescription = r.kind.name, tint = if (solid) Palette.ink else color, modifier = Modifier.size(size * 0.62f))
         }
         Icons.tagOf(r)?.let { tag ->
             val chip = size * 0.44f

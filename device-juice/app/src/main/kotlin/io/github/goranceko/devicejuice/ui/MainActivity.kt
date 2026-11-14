@@ -2,6 +2,7 @@ package io.github.goranceko.devicejuice.ui
 
 import android.content.Intent
 import android.os.Bundle
+import io.github.goranceko.devicejuice.estimate.RideLogStore
 import io.github.goranceko.devicejuice.hooks.RideHooks
 import io.github.goranceko.devicejuice.hooks.RideMessages
 import android.text.format.DateUtils
@@ -35,6 +36,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import io.github.goranceko.devicejuice.ui.theme.Palette
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -72,13 +75,15 @@ class MainActivity : ComponentActivity() {
         karoo = KarooSystemService(applicationContext)
         karoo.connect()
         afterRide.value = intent?.action == RideHooks.ACTION_POST_RIDE
+        val prefs = getSharedPreferences(RideHooks.PREFS, MODE_PRIVATE)
+        Palette.light = prefs.getBoolean(KEY_LIGHT, false)
         val hiddenDevices = hiddenDevices(this)
         val pinnedDevices = pinnedDevices(this)
-        val stateFlow = BatteryRepository(karoo, hiddenDevices, pinnedDevices).state()
+        val stateFlow = BatteryRepository(karoo, hiddenDevices, pinnedDevices, RideLogStore(this)).state()
         val spikeLog = if (BuildConfig.SPIKE_LOGGING) SpikeLogs.get(this) else null
 
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme()) {
+            MaterialTheme(colorScheme = if (Palette.light) lightColorScheme() else darkColorScheme()) {
                 val state by stateFlow.collectAsStateWithLifecycle(initialValue = BatteryRepository.State(emptyList(), 0))
                 var showDebug by remember { mutableStateOf(false) }
                 var lastHidden by remember { mutableStateOf<BatteryReading?>(null) }
@@ -103,6 +108,10 @@ class MainActivity : ComponentActivity() {
                         lastHidden = null
                     },
                     afterRide = if (afterRide.value) AfterRide(drops(state.readings)) else null,
+                    onToggleLight = {
+                        Palette.light = !Palette.light
+                        prefs.edit().putBoolean(KEY_LIGHT, Palette.light).apply()
+                    },
                     footer = {
                         if (spikeLog != null) {
                             OutlinedButton(onClick = { showDebug = !showDebug }) { Text(if (showDebug) "Hide debug log" else "Debug log") }
@@ -112,6 +121,10 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    private companion object {
+        const val KEY_LIGHT = "light_mode"
     }
 
     override fun onNewIntent(intent: Intent) {
