@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.unit.dp
 import io.github.goranceko.devicejuice.model.Band
+import io.github.goranceko.devicejuice.model.BatteryReading
 import io.github.goranceko.devicejuice.model.DeviceKind
 import io.github.goranceko.devicejuice.ui.theme.Palette
 
@@ -27,28 +28,59 @@ object Icons {
             fill.forEach { addPath(pathData = addPathNodes(it), fill = SolidColor(Color.White)) }
         }.build()
 
-    val shifting = icon(
-        "shifting",
-        listOf("M19,12a7,7 0 1,1 -14,0a7,7 0 1,1 14,0", "M12 2v3M12 19v3M2 12h3M19 12h3"),
-        listOf("M14.2,12a2.2,2.2 0 1,1 -4.4,0a2.2,2.2 0 1,1 4.4,0"),
+    /** Chainring: toothed ring around the spider. Front derailleur and whole-groupset devices (Di2 via Ki2). */
+    val chainring = icon(
+        "chainring",
+        listOf(
+            "M18.5,12a6.5,6.5 0 1,1 -13,0a6.5,6.5 0 1,1 13,0",
+            "M14.5,12a2.5,2.5 0 1,1 -5,0a2.5,2.5 0 1,1 5,0",
+            "M12 2.8v2.7M12 18.5v2.7M2.8 12h2.7M18.5 12h2.7M5.5 5.5l1.9 1.9M16.6 16.6l1.9 1.9M5.5 18.5l1.9-1.9M16.6 7.4l1.9-1.9",
+        ),
     )
+
+    /** Cassette seen from the side: cogs getting smaller, for the rear derailleur. */
+    val cassette = icon("cassette", listOf("M4.5 3v18M9 5v14M13.5 7v10M18 9v6", "M2.5 21h19"))
+
     val shifter = icon("shifter", listOf("M8 3h6l2 6-3 12h-3L9 9z"))
     val radar = icon("radar", listOf("M10 9h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2z", "M6 6a8 8 0 0 1 12 0M3.5 3.5a12 12 0 0 1 17 0"))
     val light = icon("light", listOf("M9 18h6M10 21h4", "M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"))
-    val power = icon("power", listOf("M5 8h9a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2z", "M16 12h5"))
+
+    /** Crank arm from the bottom bracket to a pedal: power meters (pedals, cranks, spiders). */
+    val crank = icon(
+        "crank",
+        listOf("M9.5,6.5a3,3 0 1,1 -6,0a3,3 0 1,1 6,0", "M8.6 8.6l7.6 7.6", "M13.2 21l7.8-7.8"),
+        listOf("M7.5,6.5a1,1 0 1,1 -2,0a1,1 0 1,1 2,0"),
+    )
     val heart = icon("heart", listOf("M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"))
     val karoo = icon("karoo", listOf("M8.5 2.5h7a2.5 2.5 0 0 1 2.5 2.5v14a2.5 2.5 0 0 1-2.5 2.5h-7a2.5 2.5 0 0 1-2.5-2.5v-14a2.5 2.5 0 0 1 2.5-2.5z", "M9 18h6"))
     val other = icon("other", listOf("M7 6h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z", "M10 3v3M14 3v3"))
 
-    fun of(kind: DeviceKind): ImageVector = when (kind) {
-        DeviceKind.HEAD_UNIT -> karoo
-        DeviceKind.SHIFTING -> shifting
-        DeviceKind.SHIFTER_COIN -> shifter
-        DeviceKind.RADAR -> radar
-        DeviceKind.LIGHT -> light
-        DeviceKind.POWER -> power
-        DeviceKind.HR -> heart
-        DeviceKind.OTHER -> other
+    fun of(r: BatteryReading): ImageVector {
+        val key = r.componentKey.orEmpty()
+        return when {
+            key.contains("REAR_DERAILLEUR") -> cassette
+            key.contains("FRONT_DERAILLEUR") -> chainring
+            else -> when (r.kind) {
+                DeviceKind.HEAD_UNIT -> karoo
+                DeviceKind.SHIFTING -> chainring
+                DeviceKind.SHIFTER_COIN -> shifter
+                DeviceKind.RADAR -> radar
+                DeviceKind.LIGHT -> light
+                DeviceKind.POWER -> crank
+                DeviceKind.HR -> heart
+                DeviceKind.OTHER -> other
+            }
+        }
+    }
+
+    /** Corner tag for parts that come in pairs: "L" / "R" for shifters and left/right power components. */
+    fun tagOf(r: BatteryReading): String? {
+        val key = r.componentKey ?: return null
+        return when {
+            key.startsWith("LEFT") -> "L"
+            key.startsWith("RIGHT") -> "R"
+            else -> null
+        }
     }
 
     /**

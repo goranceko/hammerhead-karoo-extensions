@@ -3,10 +3,13 @@ package io.github.goranceko.devicejuice.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,7 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.github.goranceko.devicejuice.model.Band
 import io.github.goranceko.devicejuice.model.BatteryReading
 import io.github.goranceko.devicejuice.ui.theme.Palette
@@ -122,15 +127,31 @@ fun LevelRing(r: BatteryReading?, band: Band, size: Dp, content: @Composable () 
     }
 }
 
-/** Device-type icon on a soft circle, both in the band colour (like Karoo's own Sensors list). */
+/** Device-type icon on a soft circle, both in the band colour (like Karoo's own Sensors list), with an L/R tag for paired parts. */
 @Composable
 fun KindBadge(r: BatteryReading, size: Dp = 40.dp) {
     val color = Palette.of(r.band)
-    Box(
-        Modifier.size(size).background(color.copy(alpha = 0.16f), CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(Icons.of(r.kind), contentDescription = r.kind.name, tint = color, modifier = Modifier.size(size * 0.55f))
+    Box(Modifier.size(size)) {
+        Box(
+            Modifier.size(size).background(color.copy(alpha = 0.16f), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.of(r), contentDescription = r.kind.name, tint = color, modifier = Modifier.size(size * 0.62f))
+        }
+        Icons.tagOf(r)?.let { tag ->
+            val chip = size * 0.44f
+            Box(
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .offset(x = chip * 0.18f, y = chip * 0.12f)
+                    .size(chip)
+                    .border(1.5.dp, Palette.bg, CircleShape)
+                    .background(color, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(tag, color = Palette.bg, fontSize = (chip.value * 0.62f).sp, fontWeight = FontWeight.ExtraBold, lineHeight = (chip.value * 0.62f).sp)
+            }
+        }
     }
 }
 
