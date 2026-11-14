@@ -4,6 +4,7 @@ import io.github.goranceko.devicejuice.estimate.Estimate
 import io.github.goranceko.devicejuice.estimate.Estimator
 import io.github.goranceko.devicejuice.estimate.RideEntry
 import io.github.goranceko.devicejuice.model.Band
+import io.github.goranceko.devicejuice.settings.Thresholds
 import io.github.goranceko.devicejuice.model.Bands
 import io.github.goranceko.devicejuice.model.BatteryReading
 import io.github.goranceko.devicejuice.model.DeviceKind
@@ -26,6 +27,7 @@ private const val KI2_DEVICE_PREFIX = "ki2::"
  * - A Ki2 % newer than the Karoo level wins for Ki2 devices without components.
  * - Readings older than [Bands.STALE_AFTER_MS] are grey and `stale`.
  * - [hidden] holds row ids; a device id also hides all its components.
+ * - [names] renames devices (by device id, components included); [thresholds] set the % bands.
  * - [pinned] works the same way and puts those rows first within their band.
  * - Each row gets an [Estimate] from [log]. A learned estimate shorter than a typical ride moves the row
  *   one band more urgent (PLAN.md 5.1, last rule).
@@ -39,35 +41,38 @@ fun buildReadings(
     hidden: Set<String> = emptySet(),
     pinned: Set<String> = emptySet(),
     log: List<RideEntry> = emptyList(),
+    names: Map<String, String> = emptyMap(),
+    thresholds: Thresholds = Thresholds.DEFAULT,
 ): List<BatteryReading> {
     val rows = mutableListOf<BatteryReading>()
     karooPercent?.let {
         rows += BatteryReading(
             id = KAROO_ID, deviceId = KAROO_ID, componentKey = null, name = "Karoo", kind = DeviceKind.HEAD_UNIT,
             level = null, percent = it, updatedAt = now, source = ReadingSource.KAROO, enabled = true,
-            stale = false, band = Bands.forPercent(it),
+            stale = false, band = Bands.forPercent(it, thresholds),
         )
     }
     saved?.devices.orEmpty().forEach { device ->
         if (device.id in hidden) return@forEach
         val kind = DeviceKinds.ofDevice(device.supportedDataTypes)
+        val deviceName = names[device.id] ?: device.name
         val components = device.components.orEmpty()
         if (components.size >= 2) {
             components.toSortedMap().forEach { (key, detail) ->
                 rows += levelReading(
                     id = "${device.id}/$key", deviceId = device.id, componentKey = key,
-                    name = "${device.name} · ${humanise(key)}", kind = DeviceKinds.ofComponent(key, kind),
+                    name = "$deviceName · ${humanise(key)}", kind = DeviceKinds.ofComponent(key, kind),
                     detail = detail, enabled = device.enabled, now = now,
-                ).copy(deviceName = device.name, partName = humanise(key))
+                ).copy(deviceName = deviceName, partName = humanise(key))
             }
         } else {
             val base = levelReading(
-                id = device.id, deviceId = device.id, componentKey = null, name = device.name, kind = kind,
+                id = device.id, deviceId = device.id, componentKey = null, name = deviceName, kind = kind,
                 detail = device.details, enabled = device.enabled, now = now,
             )
             val lastUpdate = device.details.lastBatteryUpdate
             rows += if (ki2 != null && device.id.startsWith(KI2_DEVICE_PREFIX) && (lastUpdate == null || ki2.at >= lastUpdate)) {
-                base.copy(level = null, percent = ki2.percent, updatedAt = ki2.at, source = ReadingSource.KI2, stale = false, band = Bands.forPercent(ki2.percent))
+                base.copy(level = null, percent = ki2.percent, updatedAt = ki2.at, source = ReadingSource.KI2, stale = false, band = Bands.forPercent(ki2.percent, thresholds))
             } else {
                 base
             }

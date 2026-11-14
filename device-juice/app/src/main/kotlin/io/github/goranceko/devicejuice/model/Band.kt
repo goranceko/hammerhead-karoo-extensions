@@ -1,5 +1,6 @@
 package io.github.goranceko.devicejuice.model
 
+import io.github.goranceko.devicejuice.settings.Thresholds
 import io.hammerhead.karooext.models.BatteryStatus
 
 /** Colour bands from PLAN.md section 4. Declaration order is the sort order (most urgent first). */
@@ -9,10 +10,10 @@ object Bands {
     /** A reading older than this is grey, whatever its level (PLAN.md 3.3). */
     const val STALE_AFTER_MS = 7L * 24 * 60 * 60 * 1000
 
-    fun forPercent(percent: Int): Band = when {
-        percent >= 50 -> Band.GREEN
-        percent >= 30 -> Band.YELLOW
-        percent >= 15 -> Band.ORANGE
+    fun forPercent(percent: Int, t: Thresholds = Thresholds.DEFAULT): Band = when {
+        percent >= t.green -> Band.GREEN
+        percent >= t.yellow -> Band.YELLOW
+        percent >= t.orange -> Band.ORANGE
         else -> Band.RED
     }
 

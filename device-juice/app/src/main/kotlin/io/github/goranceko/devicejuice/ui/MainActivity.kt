@@ -31,7 +31,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextButton
+import io.github.goranceko.devicejuice.settings.SettingsStore
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -79,13 +85,45 @@ class MainActivity : ComponentActivity() {
         Palette.light = prefs.getBoolean(KEY_LIGHT, false)
         val hiddenDevices = hiddenDevices(this)
         val pinnedDevices = pinnedDevices(this)
-        val stateFlow = BatteryRepository(karoo, hiddenDevices, pinnedDevices, RideLogStore(this)).state()
+        val settingsStore = SettingsStore(this)
+        val stateFlow = BatteryRepository(karoo, hiddenDevices, pinnedDevices, RideLogStore(this), settingsStore).state()
         val spikeLog = if (BuildConfig.SPIKE_LOGGING) SpikeLogs.get(this) else null
 
         setContent {
             MaterialTheme(colorScheme = if (Palette.light) lightColorScheme() else darkColorScheme()) {
                 val state by stateFlow.collectAsStateWithLifecycle(initialValue = BatteryRepository.State(emptyList(), 0))
+                val settings by settingsStore.flow().collectAsStateWithLifecycle(initialValue = settingsStore.get())
                 var showDebug by remember { mutableStateOf(false) }
+                var showSettings by remember { mutableStateOf(false) }
+                var renaming by remember { mutableStateOf<BatteryReading?>(null) }
+                val toggleLight = {
+                    Palette.light = !Palette.light
+                    prefs.edit().putBoolean(KEY_LIGHT, Palette.light).apply()
+                }
+                BackHandler(enabled = showSettings) { showSettings = false }
+                renaming?.let { r ->
+                    RenameDialog(
+                        current = settings.names[r.deviceId] ?: r.deviceName,
+                        onSave = { settingsStore.rename(r.deviceId, it); renaming = null },
+                        onReset = { settingsStore.rename(r.deviceId, null); renaming = null },
+                        onDismiss = { renaming = null },
+                    )
+                }
+                if (showSettings) {
+                    SettingsScreen(
+                        settings = settings,
+                        hidden = state.hidden,
+                        onBack = { showSettings = false },
+                        onToggleLight = toggleLight,
+                        onRideStartAlert = settingsStore::setRideStartAlert,
+                        onRideEndNotice = settingsStore::setRideEndNotice,
+                        onPreRideNotice = settingsStore::setPreRideNotice,
+                        onThresholds = settingsStore::setThresholds,
+                        onUnhide = { hiddenDevices.remove(it.id); hiddenDevices.remove(it.deviceId) },
+                        onResetName = { settingsStore.rename(it, null) },
+                    )
+                    return@MaterialTheme
+                }
                 var lastHidden by remember { mutableStateOf<BatteryReading?>(null) }
                 LaunchedEffect(lastHidden) {
                     if (lastHidden != null) {
@@ -108,10 +146,8 @@ class MainActivity : ComponentActivity() {
                         lastHidden = null
                     },
                     afterRide = if (afterRide.value) AfterRide(drops(state.readings)) else null,
-                    onToggleLight = {
-                        Palette.light = !Palette.light
-                        prefs.edit().putBoolean(KEY_LIGHT, Palette.light).apply()
-                    },
+                    onRename = { renaming = it },
+                    onOpenSettings = { showSettings = true },
                     footer = {
                         if (spikeLog != null) {
                             OutlinedButton(onClick = { showDebug = !showDebug }) { Text(if (showDebug) "Hide debug log" else "Debug log") }
@@ -121,6 +157,26 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    @Composable
+    private fun RenameDialog(current: String, onSave: (String) -> Unit, onReset: () -> Unit, onDismiss: () -> Unit) {
+        var text by remember { mutableStateOf(current) }
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            containerColor = Palette.cardHigh,
+            title = { Text("Rename device", color = Palette.fg) },
+            text = {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it.take(40) },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Palette.fg, unfocusedTextColor = Palette.fg, focusedBorderColor = Palette.green, cursorColor = Palette.fg),
+                )
+            },
+            confirmButton = { TextButton(onClick = { onSave(text) }) { Text("Save", color = Palette.fg) } },
+            dismissButton = { TextButton(onClick = onReset) { Text("Original name", color = Palette.sub) } },
+        )
     }
 
     private companion object {

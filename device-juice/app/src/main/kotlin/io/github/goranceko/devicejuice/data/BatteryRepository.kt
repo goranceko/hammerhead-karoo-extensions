@@ -3,6 +3,8 @@ package io.github.goranceko.devicejuice.data
 import io.github.goranceko.devicejuice.estimate.RideEntry
 import io.github.goranceko.devicejuice.estimate.RideLogStore
 import io.github.goranceko.devicejuice.model.BatteryReading
+import io.github.goranceko.devicejuice.settings.Settings
+import io.github.goranceko.devicejuice.settings.SettingsStore
 import io.hammerhead.karooext.KarooSystemService
 import io.hammerhead.karooext.models.SavedDevices
 import kotlinx.coroutines.delay
@@ -17,23 +19,25 @@ class BatteryRepository(
     private val hiddenDevices: DeviceIdSet,
     private val pinnedDevices: DeviceIdSet,
     private val rideLog: RideLogStore,
+    private val settings: SettingsStore,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
-    private data class Prefs(val hidden: Set<String>, val pinned: Set<String>, val log: List<RideEntry>)
+    private data class Prefs(val hidden: Set<String>, val pinned: Set<String>, val log: List<RideEntry>, val settings: Settings)
 
-    data class State(val readings: List<BatteryReading>, val hiddenCount: Int)
+    /** [hidden] lists the hidden rows, for the settings screen. */
+    data class State(val readings: List<BatteryReading>, val hiddenCount: Int, val hidden: List<BatteryReading> = emptyList())
 
     fun state(): Flow<State> = combine(
         karoo.savedDevicesFlow().onStart<SavedDevices?> { emit(null) },
         karoo.karooBatteryFlow().onStart { emit(null) },
         karoo.ki2BatteryFlow(clock).onStart<Ki2Battery?> { emit(null) },
-        combine(hiddenDevices.flow(), pinnedDevices.flow(), rideLog.flow(), ::Prefs),
+        combine(hiddenDevices.flow(), pinnedDevices.flow(), rideLog.flow(), settings.flow(), ::Prefs),
         ticker(),
-    ) { saved, karooPercent, ki2, (hidden, pinned, log), now ->
-        val all = buildReadings(saved, karooPercent, ki2, now, pinned = pinned, log = log)
+    ) { saved, karooPercent, ki2, (hidden, pinned, log, s), now ->
+        val all = buildReadings(saved, karooPercent, ki2, now, pinned = pinned, log = log, names = s.names, thresholds = s.thresholds)
         // The Karoo itself can't be hidden.
         val shown = all.filter { r -> r.id == KAROO_ID || (r.id !in hidden && r.deviceId !in hidden) }
-        State(shown, all.size - shown.size)
+        State(shown, all.size - shown.size, all - shown.toSet())
     }
 
     /** Re-evaluates staleness once a minute even when no event arrives. */

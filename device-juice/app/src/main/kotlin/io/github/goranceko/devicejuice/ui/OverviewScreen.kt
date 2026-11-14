@@ -56,10 +56,13 @@ data class AfterRide(val drops: Map<String, String>)
 
 private val LocalAfterRide = staticCompositionLocalOf<AfterRide?> { null }
 
+/** Long-press menu → Rename. Provided by [OverviewScreen]. */
+private val LocalOnRename = staticCompositionLocalOf<(BatteryReading) -> Unit> { {} }
+
 /**
  * Pre-ride battery overview (PLAN.md 3.3, mockup "Before the ride").
  * Only devices in the active ride profile count for the verdict; the rest sit dimmed at the bottom.
- * Long-press a device to pin or hide it; [undo] shows an undo bar for the last hidden one.
+ * Long-press a device to pin, rename or hide it; [undo] shows an undo bar for the last hidden one.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -72,9 +75,10 @@ fun OverviewScreen(
     undo: BatteryReading? = null,
     onUndo: () -> Unit = {},
     afterRide: AfterRide? = null,
-    onToggleLight: () -> Unit = {},
+    onRename: (BatteryReading) -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     footer: @Composable () -> Unit = {},
-) = CompositionLocalProvider(LocalAfterRide provides afterRide) {
+) = CompositionLocalProvider(LocalAfterRide provides afterRide, LocalOnRename provides onRename) {
     val active = state.readings.filter { it.enabled }
     val otherProfile = state.readings.filterNot { it.enabled }
     val attention = active.filter { it.band in setOf(Band.RED, Band.ORANGE, Band.YELLOW) }
@@ -117,13 +121,13 @@ fun OverviewScreen(
                 )
             }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("Long-press a device to pin or hide it.", color = Palette.faint, fontSize = 11.sp, modifier = Modifier.padding(start = 4.dp).weight(1f))
+                Text("Long-press a device to pin, rename or hide it.", color = Palette.faint, fontSize = 11.sp, modifier = Modifier.padding(start = 4.dp).weight(1f))
                 Text(
-                    if (Palette.light) "Dark mode" else "Light mode",
+                    "Settings",
                     color = Palette.sub,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onToggleLight).padding(horizontal = 6.dp, vertical = 8.dp),
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onOpenSettings).padding(horizontal = 6.dp, vertical = 8.dp),
                 )
             }
             footer()
@@ -296,7 +300,7 @@ private fun CompactList(rows: List<BatteryReading>, now: Long, onHide: (BatteryR
     }
 }
 
-/** Long-press menu: pin to the top of its group, or hide. The Karoo can be pinned but not hidden. */
+/** Long-press menu: pin to the top of its group, rename, or hide. The Karoo can only be pinned. */
 @Composable
 private fun DeviceMenu(r: BatteryReading, expanded: Boolean, onDismiss: () -> Unit, onHide: (BatteryReading) -> Unit, onTogglePin: (BatteryReading) -> Unit) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss, modifier = Modifier.background(Palette.cardHigh)) {
@@ -305,6 +309,8 @@ private fun DeviceMenu(r: BatteryReading, expanded: Boolean, onDismiss: () -> Un
             onClick = { onDismiss(); onTogglePin(r) },
         )
         if (r.kind != DeviceKind.HEAD_UNIT) {
+            val onRename = LocalOnRename.current
+            DropdownMenuItem(text = { Text("Rename", color = Palette.fg) }, onClick = { onDismiss(); onRename(r) })
             DropdownMenuItem(text = { Text("Hide", color = Palette.fg) }, onClick = { onDismiss(); onHide(r) })
         }
     }

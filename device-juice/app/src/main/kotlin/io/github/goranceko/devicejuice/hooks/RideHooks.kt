@@ -10,6 +10,7 @@ import io.github.goranceko.devicejuice.estimate.RideLogStore
 import io.github.goranceko.devicejuice.karoo.consumerFlow
 import io.github.goranceko.devicejuice.model.Band
 import io.github.goranceko.devicejuice.model.BatteryReading
+import io.github.goranceko.devicejuice.settings.SettingsStore
 import io.github.goranceko.devicejuice.spike.RidePhase
 import io.github.goranceko.devicejuice.spike.RideTransition
 import io.github.goranceko.devicejuice.spike.RideTransitionDetector
@@ -45,6 +46,7 @@ class RideHooks(
     private val jobs = mutableListOf<Job>()
     private var preRideShown = false
     private val rideLog = RideLogStore(context)
+    private val settings = SettingsStore(context)
     /** Recording time of the current ride, pauses excluded. */
     private var recordedMs = 0L
     private var recordingSince: Long? = null
@@ -82,7 +84,7 @@ class RideHooks(
     private fun onRideStart() {
         preRideShown = true // no pre-ride nag once riding
         prefs.edit().putString(KEY_START, RideMessages.encode(RideMessages.snapshot(active))).apply()
-        val m = RideMessages.rideStart(active) ?: return
+        val m = RideMessages.rideStart(active)?.takeIf { settings.get().rideStartAlert } ?: return
         karoo.dispatch(
             InRideAlert(
                 id = "devicejuice-ride-start",
@@ -113,13 +115,13 @@ class RideHooks(
             val devices = active.mapNotNull { r -> start[r.id]?.let { r.id to DeviceRide(it, StartValue(r.percent, r.level)) } }.toMap()
             if (devices.isNotEmpty()) rideLog.append(RideEntry(now(), recordingMs, devices))
             // Keep the snapshot for the post-ride screen; the next ride start overwrites it.
-            val m = RideMessages.rideEnd(active) ?: return@launch
+            val m = RideMessages.rideEnd(active)?.takeIf { settings.get().rideEndNotice } ?: return@launch
             notify("devicejuice-ride-end", m, ACTION_POST_RIDE)
         }
     }
 
     private fun onPreRide() {
-        val m = RideMessages.preRide(active) ?: return
+        val m = RideMessages.preRide(active)?.takeIf { settings.get().preRideNotice } ?: return
         preRideShown = true
         notify("devicejuice-pre-ride", m, ACTION_MAIN)
     }
