@@ -8,7 +8,8 @@ package io.github.goranceko.devicejuice.model
 data class Verdict(val band: Band, val title: String, val detail: String)
 
 object Verdicts {
-    fun of(readings: List<BatteryReading>): Verdict {
+    /** [afterRide] words red as "Charge 1 device tonight" instead of "won't last the ride". */
+    fun of(readings: List<BatteryReading>, afterRide: Boolean = false): Verdict {
         val red = readings.filter { it.band == Band.RED }
         val orange = readings.filter { it.band == Band.ORANGE }
         val yellow = readings.filter { it.band == Band.YELLOW }
@@ -19,7 +20,11 @@ object Verdicts {
             readings.isEmpty() -> Verdict(Band.GREY, "Waiting for devices", "Karoo has not reported any device yet.")
             red.isNotEmpty() -> Verdict(
                 Band.RED,
-                if (red.size == 1) "1 device won't last the ride" else "${red.size} devices won't last the ride",
+                when {
+                    afterRide -> "${title(red)} tonight"
+                    red.size == 1 -> "1 device won't last the ride"
+                    else -> "${red.size} devices won't last the ride"
+                },
                 "${names(red)} ${isAre(red)} under 15 %." + more(orange.size + yellow.size),
             )
             orange.isNotEmpty() -> Verdict(

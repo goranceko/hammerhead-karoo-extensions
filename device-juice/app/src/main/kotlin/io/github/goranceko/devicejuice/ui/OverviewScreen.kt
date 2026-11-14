@@ -27,6 +27,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -49,6 +51,11 @@ import io.github.goranceko.devicejuice.ui.theme.Palette
 private val Condensed = FontFamily(Typeface.create("sans-serif-condensed", Typeface.NORMAL))
 private val CardShape = RoundedCornerShape(16.dp)
 
+/** Post-ride variant (PLAN.md 3.3): [drops] maps row id to "−12 %" or "Full → Good" for this ride. */
+data class AfterRide(val drops: Map<String, String>)
+
+private val LocalAfterRide = staticCompositionLocalOf<AfterRide?> { null }
+
 /**
  * Pre-ride battery overview (PLAN.md 3.3, mockup "Before the ride").
  * Only devices in the active ride profile count for the verdict; the rest sit dimmed at the bottom.
@@ -64,8 +71,9 @@ fun OverviewScreen(
     onShowHidden: () -> Unit,
     undo: BatteryReading? = null,
     onUndo: () -> Unit = {},
+    afterRide: AfterRide? = null,
     footer: @Composable () -> Unit = {},
-) {
+) = CompositionLocalProvider(LocalAfterRide provides afterRide) {
     val active = state.readings.filter { it.enabled }
     val otherProfile = state.readings.filterNot { it.enabled }
     val attention = active.filter { it.band in setOf(Band.RED, Band.ORANGE, Band.YELLOW) }
@@ -80,14 +88,14 @@ fun OverviewScreen(
                 .padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = if (undo != null) 64.dp else 10.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Header(active.size)
-            VerdictCard(active)
+            Header(active.size, afterRide != null)
+            VerdictCard(active, afterRide != null)
             if (attention.isNotEmpty()) {
-                SectionLabel("Needs attention", attention.size)
+                SectionLabel(if (afterRide != null) "Charge" else "Needs attention", attention.size)
                 attention.forEach { AttentionCard(it, now, onHide, onTogglePin) }
             }
             if (healthy.isNotEmpty()) {
-                SectionLabel("Healthy", healthy.size)
+                SectionLabel(if (afterRide != null) "Fine for now" else "Healthy", healthy.size)
                 CompactList(healthy, now, onHide, onTogglePin)
             }
             if (unseen.isNotEmpty()) {
@@ -138,16 +146,16 @@ private fun UndoBar(hidden: BatteryReading, onUndo: () -> Unit, modifier: Modifi
 }
 
 @Composable
-private fun Header(count: Int) {
+private fun Header(count: Int, afterRide: Boolean) {
     Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text("Battery check", color = Palette.fg, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, fontFamily = Condensed, modifier = Modifier.weight(1f))
+        Text(if (afterRide) "After the ride" else "Battery check", color = Palette.fg, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, fontFamily = Condensed, modifier = Modifier.weight(1f))
         Text("$count batteries", color = Palette.sub, fontSize = 12.sp)
     }
 }
 
 @Composable
-private fun VerdictCard(readings: List<BatteryReading>) {
-    val verdict = Verdicts.of(readings)
+private fun VerdictCard(readings: List<BatteryReading>, afterRide: Boolean) {
+    val verdict = Verdicts.of(readings, afterRide)
     val color = Palette.of(verdict.band)
     val weakest = readings.firstOrNull { it.band != Band.GREY }
     Row(
@@ -210,7 +218,7 @@ private fun AttentionCard(r: BatteryReading, now: Long, onHide: (BatteryReading)
                     if (r.pinned) PinMark()
                 }
                 if (r.partName != null) Text(r.deviceName, color = Palette.sub, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(subtitle(r, now), color = Palette.faint, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(subtitle(r, now, LocalAfterRide.current?.drops.orEmpty()), color = Palette.faint, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End) {
@@ -223,7 +231,7 @@ private fun AttentionCard(r: BatteryReading, now: Long, onHide: (BatteryReading)
                 BatteryGlyph(r, 40.dp, 18.dp)
             }
         }
-        Advice.preRide(r)?.let { advice ->
+        advice(r)?.let { advice ->
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.width(3.dp).height(16.dp).clip(RoundedCornerShape(2.dp)).background(color))
@@ -257,7 +265,7 @@ private fun CompactList(rows: List<BatteryReading>, now: Long, onHide: (BatteryR
                         Text(r.title, color = Palette.fg, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                         if (r.pinned) PinMark()
                     }
-                    Text(caption(r, now), color = Palette.faint, fontSize = 11.sp, lineHeight = 13.sp, maxLines = if (r.band == Band.GREY) 2 else 1, overflow = TextOverflow.Ellipsis)
+                    Text(caption(r, now, LocalAfterRide.current?.drops.orEmpty()), color = Palette.faint, fontSize = 11.sp, lineHeight = 13.sp, maxLines = if (r.band == Band.GREY) 2 else 1, overflow = TextOverflow.Ellipsis)
                 }
                 Spacer(Modifier.width(8.dp))
                 if (r.band == Band.GREY) {
@@ -288,12 +296,17 @@ private fun DeviceMenu(r: BatteryReading, expanded: Boolean, onDismiss: () -> Un
     }
 }
 
+/** Pre- or post-ride advice, depending on the screen variant. */
+@Composable
+private fun advice(r: BatteryReading): String? = if (LocalAfterRide.current != null) Advice.postRide(r) else Advice.preRide(r)
+
 /** Second line of a compact row: device name for parts, else the advice for grey rows, else type and age. */
-private fun caption(r: BatteryReading, now: Long): String {
+private fun caption(r: BatteryReading, now: Long, drops: Map<String, String>): String {
     if (r.band == Band.GREY) return Advice.preRide(r) ?: kindLabel(r.kind)
+    val drop = drops[r.id]
     val who = if (r.partName != null) r.deviceName else kindLabel(r.kind)
     val age = if (r.source == ReadingSource.KAROO) null else ageText(r.updatedAt, now)
-    return listOfNotNull(who, if (r.source == ReadingSource.KI2) "via Ki2" else null, age).joinToString(" · ")
+    return listOfNotNull(who, if (r.source == ReadingSource.KI2) "via Ki2" else null, drop ?: age).joinToString(" · ")
 }
 
 private fun kindLabel(kind: DeviceKind): String = when (kind) {
@@ -307,11 +320,14 @@ private fun kindLabel(kind: DeviceKind): String = when (kind) {
     DeviceKind.OTHER -> "Device"
 }
 
-private fun subtitle(r: BatteryReading, now: Long): String {
+private fun subtitle(r: BatteryReading, now: Long, drops: Map<String, String>): String {
     val parts = mutableListOf<String>()
+    val drop = drops[r.id]
     if (r.partName == null) parts += kindLabel(r.kind)
     if (r.source == ReadingSource.KI2) parts += "via Ki2"
-    if (r.source != ReadingSource.KAROO) {
+    if (drop != null) {
+        parts += drop
+    } else if (r.source != ReadingSource.KAROO) {
         ageText(r.updatedAt, now)?.let { parts += it }
     }
     return parts.joinToString(" · ")

@@ -18,6 +18,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <!-- Ride-end notification opens the post-ride variant. -->
+            <intent-filter>
+                <action android:name="io.github.goranceko.devicejuice.POST_RIDE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <service

@@ -1,6 +1,9 @@
 package io.github.goranceko.devicejuice.ui
 
+import android.content.Intent
 import android.os.Bundle
+import io.github.goranceko.devicejuice.hooks.RideHooks
+import io.github.goranceko.devicejuice.hooks.RideMessages
 import android.text.format.DateUtils
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -61,11 +64,14 @@ import kotlinx.coroutines.withContext
 /** Battery overview (milestone 3). Debug builds add the milestone-0 spike log behind a button. */
 class MainActivity : ComponentActivity() {
     private lateinit var karoo: KarooSystemService
+    /** True when opened from the ride-end notification. */
+    private val afterRide = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         karoo = KarooSystemService(applicationContext)
         karoo.connect()
+        afterRide.value = intent?.action == RideHooks.ACTION_POST_RIDE
         val hiddenDevices = hiddenDevices(this)
         val pinnedDevices = pinnedDevices(this)
         val stateFlow = BatteryRepository(karoo, hiddenDevices, pinnedDevices).state()
@@ -96,6 +102,7 @@ class MainActivity : ComponentActivity() {
                         lastHidden?.let { hiddenDevices.remove(it.id) }
                         lastHidden = null
                     },
+                    afterRide = if (afterRide.value) AfterRide(drops(state.readings)) else null,
                     footer = {
                         if (spikeLog != null) {
                             OutlinedButton(onClick = { showDebug = !showDebug }) { Text(if (showDebug) "Hide debug log" else "Debug log") }
@@ -105,6 +112,17 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        afterRide.value = intent.action == RideHooks.ACTION_POST_RIDE
+    }
+
+    /** This ride's drop per device, from the snapshot the extension took at ride start. */
+    private fun drops(readings: List<BatteryReading>): Map<String, String> {
+        val start = RideMessages.decode(getSharedPreferences(RideHooks.PREFS, MODE_PRIVATE).getString(RideHooks.KEY_START, null))
+        return readings.mapNotNull { r -> RideMessages.drop(start[r.id], r)?.let { r.id to it } }.toMap()
     }
 
     override fun onDestroy() {
