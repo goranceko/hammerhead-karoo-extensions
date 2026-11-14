@@ -121,7 +121,7 @@ Recording 10:08–13:19 UTC (11:08–14:19 CET), Karoo restarted before the ride
 | – | Service after reboot | **Rebinds on its own** after every Karoo restart without opening the app. | `BOOT spike recorder started` 10:05, 19:03, 21:19, 21:25 |
 | – | Karoo % | 98 % → 91 % by the end of the day; streams in all states. | `STREAM KAROO_BATTERY` |
 
-Notes: the extension's process was gone between 13:21 and 19:03 UTC (no `ride_end+5m` checkpoint), most likely because the Karoo was switched off. After the 19:03 boot the Karoo started recording at once (`RIDE_START` 1 s after boot) and never logged an end. Log timestamps can jump back a few seconds right after boot while the Karoo clock syncs.
+Notes: the extension's process was gone between 13:21 and 19:03 UTC (no `ride_end+5m` checkpoint) while the Karoo was off. The recording that started 1 s after the 19:03 boot was the Karoo stuck after a failed self-update (rider deleted it); ignore it. Log timestamps can jump back a few seconds right after boot while the Karoo clock syncs.
 
 All milestone-0 questions are answered.
 
