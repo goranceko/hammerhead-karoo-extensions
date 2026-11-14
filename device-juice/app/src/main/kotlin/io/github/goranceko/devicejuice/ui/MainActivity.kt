@@ -5,7 +5,7 @@ import android.text.format.DateUtils
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import io.github.goranceko.devicejuice.data.BatteryRepository
 import io.github.goranceko.devicejuice.data.HiddenDevices
@@ -100,15 +100,37 @@ class MainActivity : ComponentActivity() {
     private fun ReadingRow(r: BatteryReading, onHide: () -> Unit) {
         val value = r.percent?.let { "$it %" } ?: r.level?.name ?: "–"
         val age = r.updatedAt?.let { DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString() } ?: "never"
-        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(14.dp).background(bandColor(r.band)))
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f)) {
-                Text(r.name, color = if (r.enabled) Color.White else Color.Gray, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("${r.kind.name.lowercase()} · ${r.source.name.lowercase()} · $age${if (r.stale) " · stale" else ""}", color = Color.LightGray, fontSize = 12.sp)
+        Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(12.dp).background(bandColor(r.band)))
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    r.name,
+                    color = if (r.enabled) Color.White else Color.Gray,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
-            Text(value, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            if (r.kind != DeviceKind.HEAD_UNIT) TextButton(onClick = onHide) { Text("Hide") }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "${r.kind.name.lowercase()} · $age${if (r.stale) " · stale" else ""}",
+                    color = Color.LightGray,
+                    fontSize = 11.sp,
+                    modifier = Modifier.weight(1f).padding(start = 20.dp),
+                )
+                if (r.kind != DeviceKind.HEAD_UNIT) {
+                    Text(
+                        "Hide",
+                        color = Color(0xFFB39DDB),
+                        fontSize = 12.sp,
+                        modifier = Modifier.clickable(onClick = onHide).padding(horizontal = 8.dp, vertical = 4.dp),
+                    )
+                }
+            }
         }
     }
 
