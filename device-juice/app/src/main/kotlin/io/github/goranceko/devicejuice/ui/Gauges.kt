@@ -45,8 +45,24 @@ fun rangeOf(level: BatteryStatus?): String? = when (level) {
 
 fun valueText(r: BatteryReading): String = r.percent?.let { "$it%" } ?: when (r.level) {
     null, BatteryStatus.INVALID -> "–"
+    BatteryStatus.NEW -> "Full"
+    BatteryStatus.GOOD -> "Good"
     BatteryStatus.OK -> "OK"
-    else -> r.level.name.lowercase().replaceFirstChar { it.uppercase() }
+    BatteryStatus.LOW -> "Low"
+    BatteryStatus.CRITICAL -> "Critical"
+}
+
+/** Short age for tight layouts: "just now", "42m ago", "3h ago", "5d ago", then "2 Jun". */
+fun ageText(updatedAt: Long?, now: Long, date: (Long) -> String = { java.text.SimpleDateFormat("d MMM", java.util.Locale.getDefault()).format(java.util.Date(it)) }): String? {
+    if (updatedAt == null) return null
+    val min = (now - updatedAt).coerceAtLeast(0) / 60_000
+    return when {
+        min < 1 -> "just now"
+        min < 60 -> "${min}m ago"
+        min < 24 * 60 -> "${min / 60}h ago"
+        min < 7 * 24 * 60 -> "${min / (24 * 60)}d ago"
+        else -> date(updatedAt)
+    }
 }
 
 /** Horizontal battery: continuous fill for an exact %, 5 cells for a level. */

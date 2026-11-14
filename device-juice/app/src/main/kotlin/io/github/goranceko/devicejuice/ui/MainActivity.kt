@@ -73,11 +73,26 @@ class MainActivity : ComponentActivity() {
             MaterialTheme(colorScheme = darkColorScheme()) {
                 val state by stateFlow.collectAsStateWithLifecycle(initialValue = BatteryRepository.State(emptyList(), 0))
                 var showDebug by remember { mutableStateOf(false) }
+                var lastHidden by remember { mutableStateOf<BatteryReading?>(null) }
+                LaunchedEffect(lastHidden) {
+                    if (lastHidden != null) {
+                        delay(5_000)
+                        lastHidden = null
+                    }
+                }
                 OverviewScreen(
                     state = state,
                     now = System.currentTimeMillis(),
-                    onHide = { hiddenDevices.hide(it.id) },
+                    onHide = {
+                        hiddenDevices.hide(it.id)
+                        lastHidden = it
+                    },
                     onShowHidden = { hiddenDevices.get().forEach(hiddenDevices::unhide) },
+                    undo = lastHidden,
+                    onUndo = {
+                        lastHidden?.let { hiddenDevices.unhide(it.id) }
+                        lastHidden = null
+                    },
                     footer = {
                         if (spikeLog != null) {
                             OutlinedButton(onClick = { showDebug = !showDebug }) { Text(if (showDebug) "Hide debug log" else "Debug log") }

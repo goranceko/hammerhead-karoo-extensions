@@ -1,6 +1,10 @@
 package io.github.goranceko.devicejuice.model
 
-/** The "can I ride?" line at the top of the overview (PLAN.md 3.3). Wording follows the battery type: coin cells are replaced, the rest charged. */
+/**
+ * The "can I ride?" line at the top of the overview (PLAN.md 3.3). The title follows the battery type
+ * (coin cells are replaced, the rest charged); the detail names what is low, and the cards below say what to do.
+ * Pass only devices in the active ride profile.
+ */
 data class Verdict(val band: Band, val title: String, val detail: String)
 
 object Verdicts {
@@ -16,12 +20,12 @@ object Verdicts {
             red.isNotEmpty() -> Verdict(
                 Band.RED,
                 if (red.size == 1) "1 device won't last the ride" else "${red.size} devices won't last the ride",
-                "${names(red)} ${isAre(red)} under 15 %. ${action(red)} before this ride." + more(orange.size + yellow.size),
+                "${names(red)} ${isAre(red)} under 15 %." + more(orange.size + yellow.size),
             )
             orange.isNotEmpty() -> Verdict(
                 Band.ORANGE,
                 title(orange),
-                "${names(orange)} ${isAre(orange)} low. ${action(orange)} before your next ride." + more(yellow.size),
+                "${names(orange)} ${isAre(orange)} low." + more(yellow.size),
             )
             yellow.isNotEmpty() -> Verdict(Band.YELLOW, "${title(yellow)} this week", "${names(yellow)}. Fine for today's ride.")
             ready == 0 -> Verdict(Band.GREY, "No fresh readings", "Wake your devices to update them.")
@@ -39,12 +43,6 @@ object Verdicts {
             list.none(::isCoin) -> "Charge ${devices(n)}"
             else -> "Charge or replace $n batteries"
         }
-    }
-
-    private fun action(list: List<BatteryReading>): String = when {
-        list.all(::isCoin) -> if (list.size == 1) "Replace the coin cell" else "Replace the coin cells"
-        list.none(::isCoin) -> "Charge"
-        else -> "Charge or replace"
     }
 
     private fun isAre(list: List<BatteryReading>) = if (list.size == 1) "is" else "are"

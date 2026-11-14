@@ -25,7 +25,8 @@ class BatteryRepository(
         ticker(),
     ) { saved, karooPercent, ki2, hidden, now ->
         val all = buildReadings(saved, karooPercent, ki2, now)
-        val shown = all.filter { r -> r.id !in hidden && r.deviceId !in hidden }
+        // The Karoo itself can't be hidden.
+        val shown = all.filter { r -> r.id == KAROO_ID || (r.id !in hidden && r.deviceId !in hidden) }
         State(shown, all.size - shown.size)
     }
 

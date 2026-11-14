@@ -16,7 +16,7 @@ class VerdictsTest {
         val v = Verdicts.of(listOf(reading("Assioma", Band.RED), reading("Varia", Band.ORANGE), reading("Karoo", Band.YELLOW), reading("Di2", Band.GREEN)))
         assertEquals(Band.RED, v.band)
         assertEquals("1 device won't last the ride", v.title)
-        assertEquals("Assioma is under 15 %. Charge before this ride. 2 more need attention soon.", v.detail)
+        assertEquals("Assioma is under 15 %. 2 more need attention soon.", v.detail)
     }
 
     @Test
@@ -25,7 +25,7 @@ class VerdictsTest {
         val v = Verdicts.of(buildReadings(f.savedDevices, 90, null, f.capturedAt))
         assertEquals(Band.ORANGE, v.band)
         assertEquals("Replace 1 coin cell", v.title)
-        assertEquals("AXS System 10007 left shifter is low. Replace the coin cell before your next ride.", v.detail)
+        assertEquals("AXS System 10007 left shifter is low.", v.detail)
     }
 
     @Test
@@ -47,7 +47,7 @@ class VerdictsTest {
         assertEquals("Charge 2 devices", Verdicts.of(listOf(reading("Varia", Band.ORANGE), reading("Assioma", Band.ORANGE))).title)
         val mixed = Verdicts.of(listOf(reading("Varia", Band.ORANGE), reading("Shifter", Band.ORANGE, kind = DeviceKind.SHIFTER_COIN)))
         assertEquals("Charge or replace 2 batteries", mixed.title)
-        assertEquals("Varia and Shifter are low. Charge or replace before your next ride.", mixed.detail)
+        assertEquals("Varia and Shifter are low.", mixed.detail)
         assertEquals("Replace 1 coin cell this week", Verdicts.of(listOf(reading("Shifter", Band.YELLOW, kind = DeviceKind.SHIFTER_COIN))).title)
     }
 }
