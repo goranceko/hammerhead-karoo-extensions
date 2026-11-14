@@ -316,6 +316,12 @@ private fun DeviceMenu(r: BatteryReading, expanded: Boolean, onDismiss: () -> Un
     }
 }
 
+private fun via(r: BatteryReading): String? = when (r.source) {
+    ReadingSource.KI2 -> "via Ki2"
+    ReadingSource.BLE -> "via Bluetooth"
+    else -> null
+}
+
 /** Pre- or post-ride advice, depending on the screen variant. */
 @Composable
 private fun advice(r: BatteryReading): String? = if (LocalAfterRide.current != null) Advice.postRide(r) else Advice.preRide(r)
@@ -326,7 +332,7 @@ private fun caption(r: BatteryReading, now: Long, drops: Map<String, String>): S
     val drop = drops[r.id]
     val who = if (r.partName != null) r.deviceName else kindLabel(r.kind)
     val age = if (r.source == ReadingSource.KAROO) null else ageText(r.updatedAt, now)
-    return listOfNotNull(who, if (r.source == ReadingSource.KI2) "via Ki2" else null, drop ?: r.estimate?.amount ?: age).joinToString(" · ")
+    return listOfNotNull(who, via(r), drop ?: r.estimate?.amount ?: age).joinToString(" · ")
 }
 
 private fun kindLabel(kind: DeviceKind): String = when (kind) {
@@ -344,7 +350,7 @@ private fun subtitle(r: BatteryReading, now: Long, drops: Map<String, String>): 
     val parts = mutableListOf<String>()
     val drop = drops[r.id]
     if (r.partName == null) parts += kindLabel(r.kind)
-    if (r.source == ReadingSource.KI2) parts += "via Ki2"
+    via(r)?.let { parts += it }
     if (drop != null) {
         parts += drop
     } else if (r.source != ReadingSource.KAROO) {

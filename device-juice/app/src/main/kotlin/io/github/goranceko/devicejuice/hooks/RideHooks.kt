@@ -3,6 +3,8 @@ package io.github.goranceko.devicejuice.hooks
 import android.content.Context
 import android.util.Log
 import io.github.goranceko.devicejuice.R
+import io.github.goranceko.devicejuice.ble.BleBatteryReader
+import io.github.goranceko.devicejuice.ble.BleBatteryStore
 import io.github.goranceko.devicejuice.data.BatteryRepository
 import io.github.goranceko.devicejuice.estimate.DeviceRide
 import io.github.goranceko.devicejuice.estimate.RideEntry
@@ -47,6 +49,14 @@ class RideHooks(
     private var preRideShown = false
     private val rideLog = RideLogStore(context)
     private val settings = SettingsStore(context)
+    private val bleReader = BleBatteryReader(context)
+    private val bleStore = BleBatteryStore(context)
+
+    /** Opt-in Bluetooth % for BLE-paired devices in the profile (milestone 8). */
+    private suspend fun readBle() {
+        if (!settings.get().bleExact) return
+        bleStore.put(bleReader.read(active.map { it.deviceId }.distinct()))
+    }
     /** Recording time of the current ride, pauses excluded. */
     private var recordedMs = 0L
     private var recordingSince: Long? = null
@@ -83,6 +93,7 @@ class RideHooks(
 
     private fun onRideStart() {
         preRideShown = true // no pre-ride nag once riding
+        scope.launch { readBle() }
         prefs.edit().putString(KEY_START, RideMessages.encode(RideMessages.snapshot(active))).apply()
         val m = RideMessages.rideStart(active)?.takeIf { settings.get().rideStartAlert } ?: return
         karoo.dispatch(
@@ -109,6 +120,7 @@ class RideHooks(
         preRideShown = false
         jobs += scope.launch {
             // ANT+ devices refresh about every 15 min, BLE on connect (SPIKE.md Q1); give the last values a moment.
+            readBle()
             delay(END_SETTLE_MS)
             prefs.edit().putLong(KEY_END_AT, now()).apply()
             val start = RideMessages.decode(prefs.getString(KEY_START, null))

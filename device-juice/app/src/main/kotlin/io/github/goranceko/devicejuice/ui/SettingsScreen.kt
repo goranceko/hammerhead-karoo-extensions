@@ -44,6 +44,7 @@ fun SettingsScreen(
     onRideStartAlert: (Boolean) -> Unit,
     onRideEndNotice: (Boolean) -> Unit,
     onPreRideNotice: (Boolean) -> Unit,
+    onBleExact: (Boolean) -> Unit,
     onThresholds: (Thresholds) -> Unit,
     onUnhide: (BatteryReading) -> Unit,
     onResetName: (String) -> Unit,
@@ -78,6 +79,11 @@ fun SettingsScreen(
             SwitchRow("Ride end", "Notify what to charge after the ride", settings.rideEndNotice, onRideEndNotice)
             Divider()
             SwitchRow("Before the ride", "Notify when you open a ride page", settings.preRideNotice, onPreRideNotice)
+        }
+
+        Section("Precision")
+        Card {
+            SwitchRow("Exact % over Bluetooth (beta)", "Reads Bluetooth-paired sensors directly when you open the app and at ride start and end", settings.bleExact, onBleExact)
         }
 
         Section("Battery colours")

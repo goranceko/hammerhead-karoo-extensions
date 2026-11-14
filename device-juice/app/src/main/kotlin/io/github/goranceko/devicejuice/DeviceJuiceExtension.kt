@@ -1,6 +1,7 @@
 package io.github.goranceko.devicejuice
 
 import android.util.Log
+import io.github.goranceko.devicejuice.ble.BleBatteryStore
 import io.github.goranceko.devicejuice.data.BatteryRepository
 import io.github.goranceko.devicejuice.data.hiddenDevices
 import io.github.goranceko.devicejuice.data.pinnedDevices
@@ -30,7 +31,7 @@ class DeviceJuiceExtension : KarooExtension("devicejuice", BuildConfig.VERSION_N
 
     /** One battery state for the fields and the ride hooks. */
     private val batteries: StateFlow<BatteryRepository.State?> by lazy {
-        BatteryRepository(karoo, hiddenDevices(this), pinnedDevices(this), RideLogStore(this), SettingsStore(this)).state()
+        BatteryRepository(karoo, hiddenDevices(this), pinnedDevices(this), RideLogStore(this), SettingsStore(this), BleBatteryStore(this)).state()
             .catch { Log.w("DeviceJuice", "battery state failed", it) }
             .stateIn(scope, SharingStarted.Eagerly, null)
     }

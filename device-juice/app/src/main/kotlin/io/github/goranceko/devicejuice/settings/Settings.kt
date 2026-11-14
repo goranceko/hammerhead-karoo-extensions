@@ -18,6 +18,8 @@ data class Settings(
     val rideStartAlert: Boolean = true,
     val rideEndNotice: Boolean = true,
     val preRideNotice: Boolean = true,
+    /** Opt-in: read exact % over Bluetooth from BLE-paired sensors (milestone 8). */
+    val bleExact: Boolean = false,
 ) {
     companion object {
         /** `id \t name` lines; tabs and line breaks are removed from names. */

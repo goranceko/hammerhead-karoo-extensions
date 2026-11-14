@@ -1,5 +1,7 @@
 package io.github.goranceko.devicejuice.data
 
+import io.github.goranceko.devicejuice.ble.BleBattery
+import io.github.goranceko.devicejuice.ble.BleBatteryStore
 import io.github.goranceko.devicejuice.estimate.RideEntry
 import io.github.goranceko.devicejuice.estimate.RideLogStore
 import io.github.goranceko.devicejuice.model.BatteryReading
@@ -20,8 +22,11 @@ class BatteryRepository(
     private val pinnedDevices: DeviceIdSet,
     private val rideLog: RideLogStore,
     private val settings: SettingsStore,
+    private val ble: BleBatteryStore,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
+    private data class Exact(val ki2: Ki2Battery?, val ble: Map<String, BleBattery>)
+
     private data class Prefs(val hidden: Set<String>, val pinned: Set<String>, val log: List<RideEntry>, val settings: Settings)
 
     /** [hidden] lists the hidden rows, for the settings screen. */
@@ -30,11 +35,11 @@ class BatteryRepository(
     fun state(): Flow<State> = combine(
         karoo.savedDevicesFlow().onStart<SavedDevices?> { emit(null) },
         karoo.karooBatteryFlow().onStart { emit(null) },
-        karoo.ki2BatteryFlow(clock).onStart<Ki2Battery?> { emit(null) },
+        combine(karoo.ki2BatteryFlow(clock).onStart<Ki2Battery?> { emit(null) }, ble.flow(), ::Exact),
         combine(hiddenDevices.flow(), pinnedDevices.flow(), rideLog.flow(), settings.flow(), ::Prefs),
         ticker(),
-    ) { saved, karooPercent, ki2, (hidden, pinned, log, s), now ->
-        val all = buildReadings(saved, karooPercent, ki2, now, pinned = pinned, log = log, names = s.names, thresholds = s.thresholds)
+    ) { saved, karooPercent, (ki2, bleReads), (hidden, pinned, log, s), now ->
+        val all = buildReadings(saved, karooPercent, ki2, now, pinned = pinned, log = log, names = s.names, thresholds = s.thresholds, ble = if (s.bleExact) bleReads else emptyMap())
         // The Karoo itself can't be hidden.
         val shown = all.filter { r -> r.id == KAROO_ID || (r.id !in hidden && r.deviceId !in hidden) }
         State(shown, all.size - shown.size, all - shown.toSet())

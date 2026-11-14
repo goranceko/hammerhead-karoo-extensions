@@ -1,5 +1,6 @@
 package io.github.goranceko.devicejuice.data
 
+import io.github.goranceko.devicejuice.ble.BleBattery
 import io.github.goranceko.devicejuice.estimate.Estimate
 import io.github.goranceko.devicejuice.estimate.Estimator
 import io.github.goranceko.devicejuice.estimate.RideEntry
@@ -24,7 +25,7 @@ private const val KI2_DEVICE_PREFIX = "ki2::"
  *
  * - A device with 2+ components gives one row per component; with 0 or 1 component, one row
  *   (Assioma reports only RIGHT_SIDE_POWER, SPIKE.md Q3).
- * - A Ki2 % newer than the Karoo level wins for Ki2 devices without components.
+ * - A Ki2 % newer than the Karoo level wins for Ki2 devices without components; so does a Bluetooth % ([ble]).
  * - Readings older than [Bands.STALE_AFTER_MS] are grey and `stale`.
  * - [hidden] holds row ids; a device id also hides all its components.
  * - [names] renames devices (by device id, components included); [thresholds] set the % bands.
@@ -43,6 +44,7 @@ fun buildReadings(
     log: List<RideEntry> = emptyList(),
     names: Map<String, String> = emptyMap(),
     thresholds: Thresholds = Thresholds.DEFAULT,
+    ble: Map<String, BleBattery> = emptyMap(),
 ): List<BatteryReading> {
     val rows = mutableListOf<BatteryReading>()
     karooPercent?.let {
@@ -71,8 +73,11 @@ fun buildReadings(
                 detail = device.details, enabled = device.enabled, now = now,
             )
             val lastUpdate = device.details.lastBatteryUpdate
+            val bleRead = ble[device.id]
             rows += if (ki2 != null && device.id.startsWith(KI2_DEVICE_PREFIX) && (lastUpdate == null || ki2.at >= lastUpdate)) {
                 base.copy(level = null, percent = ki2.percent, updatedAt = ki2.at, source = ReadingSource.KI2, stale = false, band = Bands.forPercent(ki2.percent, thresholds))
+            } else if (bleRead != null && (lastUpdate == null || bleRead.at >= lastUpdate) && now - bleRead.at <= Bands.STALE_AFTER_MS) {
+                base.copy(level = null, percent = bleRead.percent, updatedAt = bleRead.at, source = ReadingSource.BLE, stale = false, band = Bands.forPercent(bleRead.percent, thresholds))
             } else {
                 base
             }

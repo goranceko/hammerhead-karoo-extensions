@@ -3,7 +3,7 @@ package io.github.goranceko.devicejuice.model
 import io.github.goranceko.devicejuice.estimate.Estimate
 import io.hammerhead.karooext.models.BatteryStatus
 
-enum class ReadingSource { SAVED_DEVICES, KAROO, KI2 }
+enum class ReadingSource { SAVED_DEVICES, KAROO, KI2, BLE }
 
 /**
  * One row on the overview: a device, or one component of a multi-part device.

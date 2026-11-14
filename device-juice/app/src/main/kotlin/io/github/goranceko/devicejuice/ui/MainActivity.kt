@@ -1,6 +1,11 @@
 package io.github.goranceko.devicejuice.ui
 
+import android.Manifest
 import android.content.Intent
+import androidx.activity.result.contract.ActivityResultContracts
+import io.github.goranceko.devicejuice.ble.BleBatteries
+import io.github.goranceko.devicejuice.ble.BleBatteryReader
+import io.github.goranceko.devicejuice.ble.BleBatteryStore
 import android.os.Bundle
 import io.github.goranceko.devicejuice.estimate.RideLogStore
 import io.github.goranceko.devicejuice.hooks.RideHooks
@@ -86,7 +91,11 @@ class MainActivity : ComponentActivity() {
         val hiddenDevices = hiddenDevices(this)
         val pinnedDevices = pinnedDevices(this)
         val settingsStore = SettingsStore(this)
-        val stateFlow = BatteryRepository(karoo, hiddenDevices, pinnedDevices, RideLogStore(this), settingsStore).state()
+        val bleStore = BleBatteryStore(this)
+        val bleReader = BleBatteryReader(this)
+        val stateFlow = BatteryRepository(karoo, hiddenDevices, pinnedDevices, RideLogStore(this), settingsStore, bleStore).state()
+        // Turning on Bluetooth % asks for the connect permission first; it stays off if denied.
+        val askBle = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> settingsStore.setBleExact(granted) }
         val spikeLog = if (BuildConfig.SPIKE_LOGGING) SpikeLogs.get(this) else null
 
         setContent {
@@ -101,6 +110,14 @@ class MainActivity : ComponentActivity() {
                     prefs.edit().putBoolean(KEY_LIGHT, Palette.light).apply()
                 }
                 BackHandler(enabled = showSettings) { showSettings = false }
+                // Opt-in Bluetooth %: read BLE-paired devices once they are known, at most every 2 minutes.
+                val bleIds = state.readings.map { it.deviceId }.filter(BleBatteries::isBleId).toSet()
+                LaunchedEffect(settings.bleExact, bleIds) {
+                    val newest = bleStore.get().filterKeys { it in bleIds }.values.maxOfOrNull { it.at } ?: 0
+                    if (settings.bleExact && bleIds.isNotEmpty() && System.currentTimeMillis() - newest > 120_000) {
+                        bleStore.put(bleReader.read(bleIds))
+                    }
+                }
                 renaming?.let { r ->
                     RenameDialog(
                         current = settings.names[r.deviceId] ?: r.deviceName,
@@ -118,6 +135,13 @@ class MainActivity : ComponentActivity() {
                         onRideStartAlert = settingsStore::setRideStartAlert,
                         onRideEndNotice = settingsStore::setRideEndNotice,
                         onPreRideNotice = settingsStore::setPreRideNotice,
+                        onBleExact = { on ->
+                            when {
+                                !on -> settingsStore.setBleExact(false)
+                                bleReader.hasPermission() -> settingsStore.setBleExact(true)
+                                else -> askBle.launch(Manifest.permission.BLUETOOTH_CONNECT)
+                            }
+                        },
                         onThresholds = settingsStore::setThresholds,
                         onUnhide = { hiddenDevices.remove(it.id); hiddenDevices.remove(it.deviceId) },
                         onResetName = { settingsStore.rename(it, null) },
