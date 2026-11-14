@@ -205,7 +205,7 @@ device-juice/
     model/
       BatteryReading.kt         // id, componentKey, name, kind, level(1..5)?, percent?, updatedAt, source
       Band.kt                   // GREEN/YELLOW/ORANGE/RED/GREY + mapping rules (section 4)
-      DeviceKind.kt             // SHIFTING, SHIFTER_COIN, RADAR_LIGHT, POWER, HR, HEAD_UNIT, OTHER
+      DeviceKind.kt             // SHIFTING, SHIFTER_COIN, RADAR, LIGHT, POWER, HR, HEAD_UNIT, OTHER
     advice/
       AdviceEngine.kt           // section 5.1 rules, pure function
       Estimator.kt              // section 5.2 learned rate + rated-life fallback
@@ -243,7 +243,7 @@ Merging: a fresher exact % from a direct source wins over the Karoo level. The i
 |---|---|---|
 | 0 | **Device spike** | On the rider's Karoo 3 with their sensors, log raw `SavedDevices` at boot, at Idle→Recording, every 5 min, at ride end and +5 min. Answer: does it refresh mid-ride and at ride end; Di2 component keys; Assioma L/R split; Varia battery present? Also: does `ActiveRidePage` fire while Idle? Does streaming the Ki2 data type from a second app work? |
 | 1 | Skeleton | Extension installs, launcher activity, Karoo % shown |
-| 2 | Repository + bands | `SavedDevices` flattened; band mapping; unit tests on milestone-0 fixtures |
+| 2 | Repository + bands | `SavedDevices` flattened; band mapping; unit tests on milestone-0 fixtures. **Done 14.11.2026**: also Ki2 % (moved up from 8), RADAR/LIGHT split, and hide per device (moved up from 7) |
 | 3 | Overview screen | Pre/post variants in Compose, dark + light, matches mockup |
 | 4 | Ride hooks | Ride-end notification opens post-ride screen; recording-start alert; once per ride |
 | 5 | Advice + estimates | Rules engine; RideLog; learned rate; rated-life fallback; labels |

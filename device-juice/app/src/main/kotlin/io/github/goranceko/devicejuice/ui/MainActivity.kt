@@ -1,6 +1,17 @@
 package io.github.goranceko.devicejuice.ui
 
 import android.os.Bundle
+import android.text.format.DateUtils
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
+import io.github.goranceko.devicejuice.data.BatteryRepository
+import io.github.goranceko.devicejuice.data.HiddenDevices
+import io.github.goranceko.devicejuice.model.Band
+import io.github.goranceko.devicejuice.model.BatteryReading
+import io.github.goranceko.devicejuice.model.DeviceKind
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -36,23 +47,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.goranceko.devicejuice.BuildConfig
-import io.github.goranceko.devicejuice.karoo.streamDataFlow
 import io.github.goranceko.devicejuice.spike.SpikeExport
 import io.github.goranceko.devicejuice.spike.SpikeLog
 import io.github.goranceko.devicejuice.spike.SpikeLogs
 import io.github.goranceko.devicejuice.spike.SpikeRecorder
 import io.hammerhead.karooext.KarooSystemService
-import io.hammerhead.karooext.models.DataType
-import io.hammerhead.karooext.models.StreamState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.math.roundToInt
 
-/** Milestone 1: Karoo battery %. Debug builds add the milestone-0 spike panel. */
+/** Milestone 2: plain list of every device's battery. Debug builds add the milestone-0 spike panel. */
 class MainActivity : ComponentActivity() {
     private lateinit var karoo: KarooSystemService
 
@@ -60,14 +65,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         karoo = KarooSystemService(applicationContext)
         karoo.connect()
-        val batteryFlow = karoo.streamDataFlow(DataType.Type.BATTERY_PERCENT)
-            .map { state -> (state as? StreamState.Streaming)?.dataPoint?.values?.get(DataType.Field.BATTERY_PERCENT)?.roundToInt() }
-            .catch { emit(null) }
+        val hiddenDevices = HiddenDevices(this)
+        val stateFlow = BatteryRepository(karoo, hiddenDevices).state()
         val spikeLog = if (BuildConfig.SPIKE_LOGGING) SpikeLogs.get(this) else null
 
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
-                val battery by batteryFlow.collectAsStateWithLifecycle(initialValue = null)
+                val state by stateFlow.collectAsStateWithLifecycle(initialValue = BatteryRepository.State(emptyList(), 0))
                 Column(
                     Modifier
                         .fillMaxSize()
@@ -76,9 +80,12 @@ class MainActivity : ComponentActivity() {
                         .padding(16.dp),
                 ) {
                     Text("Device Juice", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(12.dp))
-                    Text("Karoo", color = Color.LightGray, fontSize = 18.sp)
-                    Text(battery?.let { "$it %" } ?: "–", color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(8.dp))
+                    if (state.readings.isEmpty()) Text("Waiting for Karoo…", color = Color.LightGray, fontSize = 16.sp)
+                    state.readings.forEach { ReadingRow(it, onHide = { hiddenDevices.hide(it.id) }) }
+                    if (state.hiddenCount > 0) {
+                        OutlinedButton(onClick = { hiddenDevices.get().forEach(hiddenDevices::unhide) }) { Text("Show ${state.hiddenCount} hidden") }
+                    }
                     if (spikeLog != null) {
                         Spacer(Modifier.height(16.dp))
                         SpikePanel(spikeLog)
@@ -86,6 +93,31 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    /** Milestone 2 plain list; the designed overview is milestone 3. */
+    @Composable
+    private fun ReadingRow(r: BatteryReading, onHide: () -> Unit) {
+        val value = r.percent?.let { "$it %" } ?: r.level?.name ?: "–"
+        val age = r.updatedAt?.let { DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString() } ?: "never"
+        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(14.dp).background(bandColor(r.band)))
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Text(r.name, color = if (r.enabled) Color.White else Color.Gray, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("${r.kind.name.lowercase()} · ${r.source.name.lowercase()} · $age${if (r.stale) " · stale" else ""}", color = Color.LightGray, fontSize = 12.sp)
+            }
+            Text(value, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            if (r.kind != DeviceKind.HEAD_UNIT) TextButton(onClick = onHide) { Text("Hide") }
+        }
+    }
+
+    private fun bandColor(band: Band): Color = when (band) {
+        Band.GREEN -> Color(0xFF3DDC84)
+        Band.YELLOW -> Color(0xFFFFD54F)
+        Band.ORANGE -> Color(0xFFFF8F00)
+        Band.RED -> Color(0xFFFF3B30)
+        Band.GREY -> Color(0xFF9E9E9E)
     }
 
     override fun onDestroy() {

@@ -1,0 +1,94 @@
+package io.github.goranceko.devicejuice.data
+
+import io.github.goranceko.devicejuice.model.Band
+import io.github.goranceko.devicejuice.model.Bands
+import io.github.goranceko.devicejuice.model.BatteryReading
+import io.github.goranceko.devicejuice.model.DeviceKind
+import io.github.goranceko.devicejuice.model.DeviceKinds
+import io.github.goranceko.devicejuice.model.ReadingSource
+import io.hammerhead.karooext.models.SavedDevices
+import io.hammerhead.karooext.models.SavedDevices.SavedDevice.DeviceDetail
+
+/** Last Di2 battery % streamed from Ki2 (`ki2::DATATYPE_SHIFTING_BATTERY_PERCENTAGE`), and when we got it. */
+data class Ki2Battery(val percent: Int, val at: Long)
+
+const val KAROO_ID = "karoo"
+private const val KI2_DEVICE_PREFIX = "ki2::"
+
+/**
+ * Flattens [saved] into overview rows, adds the Karoo, applies Ki2's exact %, bands and sorts.
+ *
+ * - A device with 2+ components gives one row per component; with 0 or 1 component, one row
+ *   (Assioma reports only RIGHT_SIDE_POWER, SPIKE.md Q3).
+ * - A Ki2 % newer than the Karoo level wins for Ki2 devices without components.
+ * - Readings older than [Bands.STALE_AFTER_MS] are grey and `stale`.
+ * - [hidden] holds row ids; a device id also hides all its components.
+ * - Sort: band (red first), lowest value, name.
+ */
+fun buildReadings(
+    saved: SavedDevices?,
+    karooPercent: Int?,
+    ki2: Ki2Battery?,
+    now: Long,
+    hidden: Set<String> = emptySet(),
+): List<BatteryReading> {
+    val rows = mutableListOf<BatteryReading>()
+    karooPercent?.let {
+        rows += BatteryReading(
+            id = KAROO_ID, deviceId = KAROO_ID, componentKey = null, name = "Karoo", kind = DeviceKind.HEAD_UNIT,
+            level = null, percent = it, updatedAt = now, source = ReadingSource.KAROO, enabled = true,
+            stale = false, band = Bands.forPercent(it),
+        )
+    }
+    saved?.devices.orEmpty().forEach { device ->
+        if (device.id in hidden) return@forEach
+        val kind = DeviceKinds.ofDevice(device.supportedDataTypes)
+        val components = device.components.orEmpty()
+        if (components.size >= 2) {
+            components.toSortedMap().forEach { (key, detail) ->
+                rows += levelReading(
+                    id = "${device.id}/$key", deviceId = device.id, componentKey = key,
+                    name = "${device.name} · ${humanise(key)}", kind = DeviceKinds.ofComponent(key, kind),
+                    detail = detail, enabled = device.enabled, now = now,
+                )
+            }
+        } else {
+            val base = levelReading(
+                id = device.id, deviceId = device.id, componentKey = null, name = device.name, kind = kind,
+                detail = device.details, enabled = device.enabled, now = now,
+            )
+            val lastUpdate = device.details.lastBatteryUpdate
+            rows += if (ki2 != null && device.id.startsWith(KI2_DEVICE_PREFIX) && (lastUpdate == null || ki2.at >= lastUpdate)) {
+                base.copy(level = null, percent = ki2.percent, updatedAt = ki2.at, source = ReadingSource.KI2, stale = false, band = Bands.forPercent(ki2.percent))
+            } else {
+                base
+            }
+        }
+    }
+    return rows
+        .filter { it.id !in hidden }
+        .sortedWith(compareBy<BatteryReading>({ it.band.ordinal }, { it.sortValue }, { it.name }))
+}
+
+private fun levelReading(
+    id: String,
+    deviceId: String,
+    componentKey: String?,
+    name: String,
+    kind: DeviceKind,
+    detail: DeviceDetail,
+    enabled: Boolean,
+    now: Long,
+): BatteryReading {
+    val updatedAt = detail.lastBatteryUpdate
+    val stale = updatedAt != null && now - updatedAt > Bands.STALE_AFTER_MS
+    return BatteryReading(
+        id = id, deviceId = deviceId, componentKey = componentKey, name = name, kind = kind,
+        level = detail.lastBattery, percent = null, updatedAt = updatedAt, source = ReadingSource.SAVED_DEVICES,
+        enabled = enabled, stale = stale, band = if (stale) Band.GREY else Bands.forLevel(detail.lastBattery),
+    )
+}
+
+/** `REAR_DERAILLEUR` → `Rear derailleur`. */
+internal fun humanise(key: String): String =
+    key.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }

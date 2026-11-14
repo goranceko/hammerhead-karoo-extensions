@@ -1,0 +1,211 @@
+{
+  "capturedAt": "2026-11-12T10:00:26.654Z",
+  "source": "Karoo 3 spike log; ids, names and serials anonymised",
+  "savedDevices": {
+    "devices": [
+      {
+        "id": "10001-11-5",
+        "connectionType": "ANT_PLUS",
+        "name": "Assioma Pedals",
+        "enabled": true,
+        "details": {
+          "lastBattery": "GOOD",
+          "lastBatteryUpdate": 1792843873135,
+          "manufacturer": "Favero Electronics",
+          "serialNumber": "SERIAL-REDACTED"
+        },
+        "components": {
+          "RIGHT_SIDE_POWER": {
+            "lastBattery": "GOOD",
+            "lastBatteryUpdate": 1792843873135,
+            "manufacturer": null,
+            "serialNumber": null
+          }
+        },
+        "supportedDataTypes": [
+          "TYPE_POWER_ID",
+          "TYPE_POWER_CADENCE_ID",
+          "TYPE_PEDAL_POWER_BALANCE_ID",
+          "TYPE_PEDAL_SMOOTHNESS_ID",
+          "TYPE_TORQUE_EFFECTIVENESS_ID"
+        ],
+        "gearInfo": null
+      },
+      {
+        "id": "AA:BB:CC:DD:EE:01",
+        "connectionType": "BLE",
+        "name": "Whoop Strap",
+        "enabled": true,
+        "details": {
+          "lastBattery": "GOOD",
+          "lastBatteryUpdate": 1794476972190,
+          "manufacturer": "WHOOP Inc.",
+          "serialNumber": "SERIAL-REDACTED"
+        },
+        "components": null,
+        "supportedDataTypes": [
+          "TYPE_HEART_RATE_ID"
+        ],
+        "gearInfo": null
+      },
+      {
+        "id": "ki2::10002-1-5",
+        "connectionType": "EXTENSION",
+        "name": "Di2 Orbea",
+        "enabled": true,
+        "details": {
+          "lastBattery": "NEW",
+          "lastBatteryUpdate": 1793436487770,
+          "manufacturer": null,
+          "serialNumber": null
+        },
+        "components": null,
+        "supportedDataTypes": [
+          "TYPE_SHIFTING_FRONT_GEAR_ID",
+          "TYPE_SHIFTING_REAR_GEAR_ID",
+          "TYPE_SHIFTING_BATTERY_ID",
+          "TYPE_EXT::ki2::TYPE_DFLY",
+          "TYPE_EXT::ki2::TYPE_DI2",
+          "TYPE_EXT::ki2::TYPE_STEPS"
+        ],
+        "gearInfo": {
+          "maxFrontGears": 2,
+          "maxRearGears": 12,
+          "frontTeeth": [
+            38,
+            54
+          ],
+          "rearTeeth": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            19,
+            21,
+            24,
+            27,
+            30
+          ]
+        }
+      },
+      {
+        "id": "10003-40-117",
+        "connectionType": "ANT_PLUS",
+        "name": "Varia Gox Orbea",
+        "enabled": true,
+        "details": {
+          "lastBattery": "NEW",
+          "lastBatteryUpdate": 1793436500983,
+          "manufacturer": "Garmin",
+          "serialNumber": "SERIAL-REDACTED"
+        },
+        "components": null,
+        "supportedDataTypes": [
+          "TYPE_RADAR_ID",
+          "TYPE_RADAR_ERROR_ID"
+        ],
+        "gearInfo": null
+      },
+      {
+        "id": "10003-35-117",
+        "connectionType": "ANT_PLUS",
+        "name": "Light 10003",
+        "enabled": true,
+        "details": {
+          "lastBattery": "NEW",
+          "lastBatteryUpdate": 1793436484142,
+          "manufacturer": "Garmin",
+          "serialNumber": "SERIAL-REDACTED"
+        },
+        "components": null,
+        "supportedDataTypes": [
+          "TYPE_BIKE_LIGHT_ID"
+        ],
+        "gearInfo": null
+      },
+      {
+        "id": "10004-120-81",
+        "connectionType": "ANT_PLUS",
+        "name": "Heart Rate 10004",
+        "enabled": true,
+        "details": {
+          "lastBattery": "OK",
+          "lastBatteryUpdate": 1780420619550,
+          "manufacturer": "Garmin",
+          "serialNumber": "SERIAL-REDACTED"
+        },
+        "components": null,
+        "supportedDataTypes": [
+          "TYPE_HEART_RATE_ID"
+        ],
+        "gearInfo": null
+      },
+      {
+        "id": "10005-11-5",
+        "connectionType": "ANT_PLUS",
+        "name": "Power 10005",
+        "enabled": false,
+        "details": {
+          "lastBattery": "NEW",
+          "lastBatteryUpdate": 1794476523766,
+          "manufacturer": "SRAM",
+          "serialNumber": "SERIAL-REDACTED"
+        },
+        "components": null,
+        "supportedDataTypes": [
+          "TYPE_POWER_ID",
+          "TYPE_POWER_CADENCE_ID",
+          "TYPE_PEDAL_POWER_BALANCE_ID"
+        ],
+        "gearInfo": null
+      },
+      {
+        "id": "10006-34-5",
+        "connectionType": "ANT_PLUS",
+        "name": "AXS System 10007",
+        "enabled": true,
+        "details": {
+          "lastBattery": "LOW",
+          "lastBatteryUpdate": 1794476517578,
+          "manufacturer": "SRAM",
+          "serialNumber": null
+        },
+        "components": {
+          "FRONT_DERAILLEUR": {
+            "lastBattery": "NEW",
+            "lastBatteryUpdate": 1794476517578,
+            "manufacturer": "SRAM",
+            "serialNumber": "SERIAL-REDACTED"
+          },
+          "REAR_DERAILLEUR": {
+            "lastBattery": "NEW",
+            "lastBatteryUpdate": 1794476517578,
+            "manufacturer": "SRAM",
+            "serialNumber": "SERIAL-REDACTED"
+          },
+          "LEFT_SHIFTER": {
+            "lastBattery": "LOW",
+            "lastBatteryUpdate": 1794476517578,
+            "manufacturer": "SRAM",
+            "serialNumber": "SERIAL-REDACTED"
+          },
+          "RIGHT_SHIFTER": {
+            "lastBattery": "NEW",
+            "lastBatteryUpdate": 1794476517578,
+            "manufacturer": "SRAM",
+            "serialNumber": "SERIAL-REDACTED"
+          }
+        },
+        "supportedDataTypes": [
+          "TYPE_SHIFTING_FRONT_GEAR_ID",
+          "TYPE_SHIFTING_BATTERY_ID",
+          "TYPE_SHIFTING_REAR_GEAR_ID"
+        ],
+        "gearInfo": null
+      }
+    ]
+  }
+}

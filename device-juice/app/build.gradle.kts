@@ -16,6 +16,16 @@ android {
         versionName = "0.1.0"
     }
 
+    // Shared debug key, committed on purpose, so local and CI builds can update each other on the Karoo.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         debug {
             // Milestone 0 device spike: raw SavedDevices / stream logging to logcat + file.
