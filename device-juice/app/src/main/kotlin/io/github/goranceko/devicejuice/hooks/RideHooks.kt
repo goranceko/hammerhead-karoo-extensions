@@ -100,25 +100,26 @@ class RideHooks(
         val m = RideMessages.rideStart(active)?.takeIf { settings.get().rideStartAlert }
         Log.i(TAG, "ride start: ${active.size} active, alert=${m?.title}")
         if (m == null) return
-        // Karoo drops an alert sent while the ride screen is still loading, so wait until it is up.
+        // Give the ride screen time to load; the alert then shows over the first data page.
         scope.launch {
             delay(ALERT_DELAY_MS)
+            Log.i(TAG, "ride start alert: phase=${rides.phase}")
             if (rides.phase != RidePhase.RECORDING) return@launch
-            karoo.dispatch(
-                InRideAlert(
-                    id = "devicejuice-ride-start",
-                    icon = R.drawable.ic_device_juice,
-                    title = m.title,
-                    detail = m.detail,
-                    autoDismissMs = 15_000,
-                    backgroundColor = alertColor(m.band),
-                    textColor = R.color.alert_text,
-                ),
+            val alert = InRideAlert(
+                id = "devicejuice-ride-start",
+                icon = R.drawable.ic_device_juice,
+                title = m.title,
+                detail = m.detail,
+                autoDismissMs = 15_000,
+                backgroundColor = alertColor(m.band),
+                textColor = R.color.alert_text,
             )
+            val sent = runCatching { karoo.dispatch(alert) }
+            Log.i(TAG, "ride start alert sent=$sent $alert")
         }
     }
 
-    /** [InRideAlert] takes colour resource IDs (@ColorRes); a raw ARGB value makes Karoo drop the alert. */
+    /** [InRideAlert] takes colour resource IDs (@ColorRes); a raw ARGB value crashes the Karoo ride app. */
     private fun alertColor(band: Band): Int = when (band) {
         Band.RED -> R.color.alert_red
         Band.YELLOW -> R.color.alert_yellow

@@ -28,6 +28,7 @@ class DeviceJuiceExtension : KarooExtension("devicejuice", BuildConfig.VERSION_N
     private lateinit var karoo: KarooSystemService
     private var recorder: SpikeRecorder? = null
     private var hooks: RideHooks? = null
+    private var probe: io.github.goranceko.devicejuice.spike.AlertProbe? = null
 
     /** One battery state for the fields and the ride hooks. */
     private val batteries: StateFlow<BatteryRepository.State?> by lazy {
@@ -45,6 +46,7 @@ class DeviceJuiceExtension : KarooExtension("devicejuice", BuildConfig.VERSION_N
         karoo = KarooSystemService(applicationContext)
         if (BuildConfig.SPIKE_LOGGING) {
             recorder = SpikeRecorder(karoo, SpikeLogs.get(this), scope).also { it.start() }
+            probe = io.github.goranceko.devicejuice.spike.AlertProbe(this, karoo).also { it.start() }
         } else {
             karoo.connect()
         }
@@ -53,6 +55,7 @@ class DeviceJuiceExtension : KarooExtension("devicejuice", BuildConfig.VERSION_N
 
     override fun onDestroy() {
         hooks?.stop()
+        probe?.stop()
         recorder?.stop()
         scope.cancel()
         karoo.disconnect()
