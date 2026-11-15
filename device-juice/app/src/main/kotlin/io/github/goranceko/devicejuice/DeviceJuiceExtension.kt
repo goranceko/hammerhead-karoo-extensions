@@ -38,7 +38,7 @@ class DeviceJuiceExtension : KarooExtension("devicejuice", BuildConfig.VERSION_N
     }
 
     override val types by lazy {
-        listOf(BatteryField(BatteryField.WEAKEST, batteries, scope), BatteryField(BatteryField.STRIP, batteries, scope))
+        listOf(BatteryField(BatteryField.WEAKEST, batteries, scope), BatteryField(BatteryField.STRIP, batteries, scope), io.github.goranceko.devicejuice.field.OverviewField(batteries, scope))
     }
 
     override fun onCreate() {

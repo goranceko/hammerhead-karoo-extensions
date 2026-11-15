@@ -4,4 +4,6 @@
     <string name="field_weakest_description">The emptiest device in this ride profile, coloured by battery level.</string>
     <string name="field_strip">Battery warning</string>
     <string name="field_strip_description">Blank while all batteries are fine; shows the weakest device once one is low.</string>
+    <string name="field_overview">Battery overview</string>
+    <string name="field_overview_description">Every device in this ride profile with its battery, worst first. Use a full page.</string>
 </resources>

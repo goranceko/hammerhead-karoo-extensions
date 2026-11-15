@@ -18,4 +18,11 @@
         graphical="true"
         icon="@drawable/ic_device_juice"
         typeId="strip" />
+
+    <DataType
+        description="@string/field_overview_description"
+        displayName="@string/field_overview"
+        graphical="true"
+        icon="@drawable/ic_device_juice"
+        typeId="overview" />
 </ExtensionInfo>

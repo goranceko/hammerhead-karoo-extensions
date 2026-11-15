@@ -22,8 +22,9 @@ tonight?" after it.
 - **Rides left.** Exact sources (the Karoo, Di2 via Ki2) learn their drain from your last 6 rides:
   "~3 rides left · your last 6 rides". Other devices use a rated battery life per type:
   "~32 h left · rated life". Coin cells and heart-rate straps get no estimate.
-- **Data fields.** *Weakest battery* shows the emptiest device, coloured by level. *Battery warning* is
-  a strip that stays blank until something is low.
+- **Data fields.** *Battery overview* is a full-page field: the verdict and every device, worst first,
+  so a ride page shows it all before you press Start. *Weakest battery* shows the emptiest device,
+  coloured by level. *Battery warning* is a strip that stays blank until something is low.
 - **Settings.** Light mode, each alert on or off (power-on, before the ride, ride start, ride end), exact % over Bluetooth (beta), the % where each colour starts, hidden and renamed
   devices. Long-press a device on the overview to pin it to the top of its group, rename it or hide it.
 
@@ -49,7 +50,8 @@ adb install -r device-juice.apk
 ## Add the data fields to a ride page
 
 Karoo → Profiles → your profile → a data page → tap a field → the extension (puzzle) filter →
-**Device Juice** → *Weakest battery* or *Battery warning*.
+**Device Juice** → *Battery overview*, *Weakest battery* or *Battery warning*. Give *Battery overview* a
+page of its own: the Karoo's page editor shows it blank, and it draws on the ride page.
 
 ## What the levels mean
 
