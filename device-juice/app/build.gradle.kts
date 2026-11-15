@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -13,11 +15,19 @@ android {
         minSdk = 23
         targetSdk = 34
         // Keep in step with manifest.json (latestVersion / latestVersionCode); CI checks the tag against it.
-        versionCode = 11
-        versionName = "0.9.2"
+        versionCode = 12
+        versionName = "0.9.3"
     }
 
-    // Shared debug key, committed on purpose, so local and CI builds can update each other on the Karoo.
+    // Private release key from CI secrets (env) or this Mac's local.properties (never committed):
+    // release.storeFile, release.storePassword, release.keyAlias, release.keyPassword.
+    // When present it signs debug builds too, so local builds and releases update each other on the Karoo.
+    // Without it (a fresh clone) builds fall back to the shared debug key committed here, which can't update
+    // an install signed with the private key.
+    val local = Properties().apply {
+        rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+    }
+    fun secret(env: String, prop: String): String? = System.getenv(env) ?: local.getProperty(prop)
     signingConfigs {
         getByName("debug") {
             storeFile = file("debug.keystore")
@@ -25,25 +35,26 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
-        // Private release key, only when CI (or a local shell) provides it; otherwise releases use the shared key.
-        System.getenv("RELEASE_STORE_FILE")?.takeIf { file(it).exists() }?.let { path ->
+        secret("RELEASE_STORE_FILE", "release.storeFile")?.takeIf { file(it).exists() }?.let { path ->
             create("release") {
                 storeFile = file(path)
-                storePassword = System.getenv("RELEASE_STORE_PASSWORD")
-                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
-                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+                storePassword = secret("RELEASE_STORE_PASSWORD", "release.storePassword")
+                keyAlias = secret("RELEASE_KEY_ALIAS", "release.keyAlias")
+                keyPassword = secret("RELEASE_KEY_PASSWORD", "release.keyPassword")
             }
         }
     }
+    val signing = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
 
     buildTypes {
         debug {
             // Milestone 0 device spike: raw SavedDevices / stream logging to logcat + file.
             buildConfigField("boolean", "SPIKE_LOGGING", "true")
+            signingConfig = signing
         }
         release {
             buildConfigField("boolean", "SPIKE_LOGGING", "false")
-            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
+            signingConfig = signing
             isMinifyEnabled = false
         }
     }

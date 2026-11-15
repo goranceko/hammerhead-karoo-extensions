@@ -87,6 +87,13 @@ Releasing: bump `versionCode` / `versionName` in `app/build.gradle.kts` and `lat
 `latestVersionCode` in `app/manifest.json`, then push a tag `device-juice-v<version>`. CI checks that
 the tag matches `manifest.json`, builds the release APK and publishes the GitHub release.
 
-Signing: releases use a private key when the `RELEASE_KEYSTORE_BASE64`, `RELEASE_STORE_PASSWORD`,
-`RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` repository secrets are set; otherwise they use the shared
-key committed in `app/debug.keystore`, which lets local builds and releases update each other.
+Signing: releases are signed with a private key held in the `RELEASE_KEYSTORE_BASE64`,
+`RELEASE_STORE_PASSWORD`, `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` repository secrets (since
+0.9.3). Local builds use the same key when `local.properties` sets `release.storeFile`,
+`release.storePassword`, `release.keyAlias` and `release.keyPassword`, so they can update an installed
+release. Without those, local builds use the shared key in `app/debug.keystore`; to install one over a
+release, uninstall Device Juice first.
+
+Upgrading from 0.9.2 or earlier: those were signed with the shared key, so the Karoo can't update them to
+0.9.3. Uninstall Device Juice, then install the latest release. Hidden, pinned and renamed devices and
+settings start fresh.
