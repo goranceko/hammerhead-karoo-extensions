@@ -13,8 +13,8 @@ android {
         minSdk = 23
         targetSdk = 34
         // Keep in step with manifest.json (latestVersion / latestVersionCode); CI checks the tag against it.
-        versionCode = 9
-        versionName = "0.9.0"
+        versionCode = 10
+        versionName = "0.9.1"
     }
 
     // Shared debug key, committed on purpose, so local and CI builds can update each other on the Karoo.
