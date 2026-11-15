@@ -1,13 +1,15 @@
 # 1Battery Juice
 
-(Formerly 1Battery Juice. The "1" keeps it at the top of the Karoo's app list; the folder, package and
+(Formerly Device Juice. The "1" keeps it at the top of the Karoo's app list; the folder, package and
 release files keep the old `device-juice` / `devicejuice` names.)
 
 Battery overview of every paired device on the Hammerhead Karoo 3: shifting, power meter, radar,
 lights, heart rate and the Karoo itself. It answers "can I ride?" before the ride and "what do I charge
 tonight?" after it.
 
-![Overview](screenshots/overview-type-accents.png)
+<img src="screenshots/overview.png" alt="Overview: verdict and what needs attention" width="240"> <img src="screenshots/devices.png" alt="Overview: healthy devices with time left" width="240"> <img src="screenshots/ride-page.png" alt="Battery overview field on a ride page" width="240">
+
+The app (left, middle) and the *Battery overview* field on a ride page (right).
 
 ## What it does
 
@@ -28,7 +30,7 @@ tonight?" after it.
 - **Data fields.** *Battery overview* is a full-page field styled like the app: a card for what needs
   attention, a card for the rest, each device with its type badge, time left, value and gauge. *Weakest battery* shows the emptiest device,
   coloured by level. *Battery warning* is a strip that stays blank until something is low.
-- **Settings.** Light mode, each alert on or off (power-on, before the ride, ride start, ride end), exact % over Bluetooth (beta), the % where each colour starts, hidden and renamed
+- **Settings.** Light mode, each alert on or off (power-on, before the ride, ride start, ride end), exact % over Bluetooth (beta), the % where each colour starts, hidden
   devices. Long-press a device on the overview to pin it to the top of its group, rename it or hide it.
 
 Only devices in the active ride profile count for the verdict; the others sit dimmed at the bottom.

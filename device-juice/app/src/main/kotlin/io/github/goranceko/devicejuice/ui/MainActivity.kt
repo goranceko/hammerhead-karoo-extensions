@@ -145,7 +145,6 @@ class MainActivity : ComponentActivity() {
                         },
                         onThresholds = settingsStore::setThresholds,
                         onUnhide = { hiddenDevices.remove(it.id); hiddenDevices.remove(it.deviceId) },
-                        onResetName = { settingsStore.rename(it, null) },
                     )
                     return@MaterialTheme
                 }

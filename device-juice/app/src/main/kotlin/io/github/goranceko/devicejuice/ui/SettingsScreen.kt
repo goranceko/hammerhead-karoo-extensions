@@ -48,7 +48,6 @@ fun SettingsScreen(
     onBleExact: (Boolean) -> Unit,
     onThresholds: (Thresholds) -> Unit,
     onUnhide: (BatteryReading) -> Unit,
-    onResetName: (String) -> Unit,
 ) {
     Column(
         Modifier
@@ -117,18 +116,6 @@ fun SettingsScreen(
             }
         }
 
-        if (settings.names.isNotEmpty()) {
-            Section("Renamed devices")
-            Card {
-                settings.names.entries.sortedBy { it.value }.forEachIndexed { i, (id, name) ->
-                    if (i > 0) Divider()
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(name, color = Palette.fg, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                        LinkText("Reset name") { onResetName(id) }
-                    }
-                }
-            }
-        }
         Text("Rename a device by long-pressing it on the overview.", color = Palette.faint, fontSize = 11.sp, modifier = Modifier.padding(start = 4.dp))
     }
 }
