@@ -35,7 +35,7 @@ import io.github.goranceko.devicejuice.model.DeviceKind
 /**
  * Milestone 4: ride hooks, run from the extension service.
  * - Ride start: snapshot every battery; in-ride alert when something is red or orange.
- * - Ride end: after [END_SETTLE_MS], a notification that opens the post-ride screen, when anything needs charging.
+ * - Ride end: right away, a notification that opens the post-ride screen, when anything needs charging.
  * - Ride page opened while Idle (SPIKE.md: ActiveRidePage fires before Start): one notification per idle period.
  */
 class RideHooks(
@@ -136,9 +136,9 @@ class RideHooks(
     private fun onRideEnd(recordingMs: Long) {
         preRideShown = false
         jobs += scope.launch {
-            // ANT+ devices refresh about every 15 min, BLE on connect (SPIKE.md Q1); give the last values a moment.
+            // Right away: the Karoo doesn't refresh sensor batteries at ride end (SPIKE.md Q1), so waiting adds nothing.
+            // The opt-in Bluetooth read comes first (a few seconds, only when switched on).
             readBle()
-            delay(END_SETTLE_MS)
             prefs.edit().putLong(KEY_END_AT, now()).apply()
             val start = RideMessages.decode(prefs.getString(KEY_START, null))
             val devices = active.mapNotNull { r -> start[r.id]?.let { r.id to DeviceRide(it, StartValue(r.percent, r.level)) } }.toMap()
@@ -196,7 +196,6 @@ class RideHooks(
         const val KEY_END_AT = "ride_end_at"
         const val ACTION_MAIN = "io.github.goranceko.devicejuice.MAIN"
         const val ACTION_POST_RIDE = "io.github.goranceko.devicejuice.POST_RIDE"
-        private const val END_SETTLE_MS = 20_000L
         private const val STARTUP_WAIT_MS = 120_000L
     }
 }

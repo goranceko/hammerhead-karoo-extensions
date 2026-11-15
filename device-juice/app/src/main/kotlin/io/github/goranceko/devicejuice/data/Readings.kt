@@ -50,7 +50,7 @@ fun buildReadings(
     val rows = mutableListOf<BatteryReading>()
     karooPercent?.let {
         rows += BatteryReading(
-            id = KAROO_ID, deviceId = KAROO_ID, componentKey = null, name = "Karoo", kind = DeviceKind.HEAD_UNIT,
+            id = KAROO_ID, deviceId = KAROO_ID, componentKey = null, name = names[KAROO_ID] ?: "Karoo", kind = DeviceKind.HEAD_UNIT,
             level = null, percent = it, updatedAt = now, source = ReadingSource.KAROO, enabled = true,
             stale = false, band = Bands.forPercent(it, thresholds),
         )

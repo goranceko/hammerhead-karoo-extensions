@@ -10,6 +10,12 @@ import io.github.goranceko.devicejuice.data.BatteryRepository
 import io.github.goranceko.devicejuice.model.BatteryReading
 import io.github.goranceko.devicejuice.model.Values
 import io.github.goranceko.devicejuice.ui.caption
+import io.github.goranceko.devicejuice.ui.timeLeftIn
+import android.graphics.Typeface
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import io.github.goranceko.devicejuice.ui.theme.Palette
 import io.hammerhead.karooext.extension.DataTypeImpl
 import io.hammerhead.karooext.internal.Emitter
@@ -94,7 +100,14 @@ class OverviewField(
         v.setImageViewBitmap(ids.badge, FieldArt.badge(r, px(22)))
         v.setTextViewText(ids.name, r.title)
         v.setTextColor(ids.name, (if (r.stale) Palette.faint else Palette.fg).toArgb())
-        v.setTextViewText(ids.caption, caption(r, now))
+        val text = caption(r, now)
+        val styled = SpannableString(text).apply {
+            timeLeftIn(text, r)?.let {
+                setSpan(ForegroundColorSpan(Palette.fg.toArgb()), it.first, it.last + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                setSpan(StyleSpan(Typeface.BOLD), it.first, it.last + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+        }
+        v.setTextViewText(ids.caption, styled)
         v.setTextColor(ids.caption, Palette.faint.toArgb())
         v.setTextViewText(ids.value, Values.text(r))
         v.setTextColor(ids.value, Palette.of(r.band).toArgb())

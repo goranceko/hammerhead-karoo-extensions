@@ -35,6 +35,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -282,7 +285,7 @@ private fun CompactList(rows: List<BatteryReading>, now: Long, onHide: (BatteryR
                         Text(r.title, color = Palette.fg, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, lineHeight = 16.sp, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                         if (r.pinned) PinMark()
                     }
-                    Text(caption(r, now, LocalAfterRide.current?.drops.orEmpty()), color = Palette.faint, fontSize = 11.sp, lineHeight = 13.sp, maxLines = if (r.band == Band.GREY) 2 else 1, overflow = TextOverflow.Ellipsis)
+                    Text(emphasised(caption(r, now, LocalAfterRide.current?.drops.orEmpty()), r), color = Palette.faint, fontSize = 11.sp, lineHeight = 13.sp, maxLines = if (r.band == Band.GREY) 2 else 1, overflow = TextOverflow.Ellipsis)
                 }
                 Spacer(Modifier.width(8.dp))
                 if (r.band == Band.GREY) {
@@ -299,7 +302,7 @@ private fun CompactList(rows: List<BatteryReading>, now: Long, onHide: (BatteryR
     }
 }
 
-/** Long-press menu: pin to the top of its group, rename, or hide. The Karoo can only be pinned. */
+/** Long-press menu: pin to the top of its group, rename, or hide. The Karoo can be pinned and renamed, not hidden. */
 @Composable
 private fun DeviceMenu(r: BatteryReading, expanded: Boolean, onDismiss: () -> Unit, onHide: (BatteryReading) -> Unit, onTogglePin: (BatteryReading) -> Unit) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss, modifier = Modifier.background(Palette.cardHigh)) {
@@ -307,9 +310,9 @@ private fun DeviceMenu(r: BatteryReading, expanded: Boolean, onDismiss: () -> Un
             text = { Text(if (r.pinned) "Unpin" else "Pin to top", color = Palette.fg) },
             onClick = { onDismiss(); onTogglePin(r) },
         )
+        val onRename = LocalOnRename.current
+        DropdownMenuItem(text = { Text("Rename", color = Palette.fg) }, onClick = { onDismiss(); onRename(r) })
         if (r.kind != DeviceKind.HEAD_UNIT) {
-            val onRename = LocalOnRename.current
-            DropdownMenuItem(text = { Text("Rename", color = Palette.fg) }, onClick = { onDismiss(); onRename(r) })
             DropdownMenuItem(text = { Text("Hide", color = Palette.fg) }, onClick = { onDismiss(); onHide(r) })
         }
     }
@@ -324,6 +327,19 @@ private fun via(r: BatteryReading): String? = when (r.source) {
 /** Pre- or post-ride advice, depending on the screen variant. */
 @Composable
 private fun advice(r: BatteryReading): String? = if (LocalAfterRide.current != null) Advice.postRide(r) else Advice.preRide(r)
+
+/** Where the time left ("~34 h left") sits in [text], so it can stand out from the grey type and age. */
+internal fun timeLeftIn(text: String, r: BatteryReading): IntRange? {
+    val amount = r.estimate?.amount ?: return null
+    val i = text.lastIndexOf(amount).takeIf { it >= 0 } ?: return null
+    return i until i + amount.length
+}
+
+/** [text] with the time left in the main text colour, semi-bold. */
+private fun emphasised(text: String, r: BatteryReading): AnnotatedString = buildAnnotatedString {
+    append(text)
+    timeLeftIn(text, r)?.let { addStyle(SpanStyle(color = Palette.fg, fontWeight = FontWeight.SemiBold), it.first, it.last + 1) }
+}
 
 /** Second line of a compact row: device name for parts (type once renamed, as the title has it), else the advice for grey rows, else type and age. */
 internal fun caption(r: BatteryReading, now: Long, drops: Map<String, String> = emptyMap()): String {

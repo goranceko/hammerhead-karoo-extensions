@@ -45,5 +45,5 @@ object Overview {
     const val PAD_DP = 8f
     const val HEADER_DP = 42f
     const val CARD_DP = 10f
-    const val ROW_DP = 31f
+    const val ROW_DP = 32f
 }

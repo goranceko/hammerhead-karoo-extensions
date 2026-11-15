@@ -83,7 +83,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -151,7 +151,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -219,7 +219,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -287,7 +287,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -355,7 +355,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -423,7 +423,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -491,7 +491,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -559,7 +559,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -627,7 +627,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -695,7 +695,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -763,7 +763,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -831,7 +831,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -912,7 +912,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -980,7 +980,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -1048,7 +1048,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -1116,7 +1116,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -1184,7 +1184,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -1252,7 +1252,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -1320,7 +1320,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -1388,7 +1388,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -1456,7 +1456,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -1524,7 +1524,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -1592,7 +1592,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -1660,7 +1660,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:includeFontPadding="false"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <LinearLayout

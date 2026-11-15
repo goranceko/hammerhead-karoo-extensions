@@ -183,4 +183,10 @@ class ReadingsTest {
         assertEquals("Left shifter", plain.title)
         assertFalse(plain.renamed)
     }
+
+    @Test
+    fun `the Karoo can be renamed too`() {
+        val rows = buildReadings(null, karooPercent = 80, ki2 = null, now = 0L, names = mapOf(KAROO_ID to "Hammerhead Karoo"))
+        assertEquals("Hammerhead Karoo", rows.single().name)
+    }
 }
