@@ -32,13 +32,15 @@ object Estimator {
     private const val MIN_RIDE_MS = 15 * 60_000L
 
     /**
-     * Rated runtime in hours on a full battery. **Hypothesis** values from manufacturer claims (PLAN.md 5.2);
-     * coin cells and HR straps last months, so they get no estimate.
+     * Rated runtime in hours on a full battery, from manufacturer claims checked 15.11.2026 (PLAN.md 5.2), taking
+     * the lower figure where claims and tests differ: Karoo 3 claims 15+ h, testers get 12-13 h; Assioma 50+ h;
+     * Varia RTL515 6 h with the light on solid (radar and light share one battery); Di2 12-speed ~1,000 km.
+     * Coin cells and HR straps last months, so they get no estimate.
      */
     fun ratedHours(kind: DeviceKind): Double? = when (kind) {
         DeviceKind.HEAD_UNIT -> 12.0
         DeviceKind.POWER -> 50.0
-        DeviceKind.RADAR -> 8.0
+        DeviceKind.RADAR -> 6.0
         DeviceKind.LIGHT -> 6.0
         DeviceKind.SHIFTING -> 35.0
         DeviceKind.SHIFTER_COIN, DeviceKind.HR, DeviceKind.OTHER -> null

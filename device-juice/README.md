@@ -72,8 +72,10 @@ orange from 15 %, red below.
 
 - The Karoo refreshes ANT+ and Ki2 batteries about every 15 minutes while connected, and BLE batteries
   only when the sensor connects. A reading older than 7 days turns grey ("Not seen since …").
-- The rated battery lives (Karoo 12 h, power meter 50 h, radar 8 h, light 6 h, electronic shifting
-  35 h) come from manufacturer claims and are rough; learned rates replace them where the source is exact.
+- The rated battery lives (Karoo 12 h, power meter 50 h, radar 6 h, light 6 h, electronic shifting
+  35 h) come from manufacturer claims, taking the lower figure where reviews measured less. They are
+  rough: a radar light on day flash lasts far longer than on solid. Learned rates replace them where the
+  source is exact.
 - Everything stays on the Karoo. Nothing is sent anywhere.
 
 ## Development

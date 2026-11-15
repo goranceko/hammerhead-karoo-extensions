@@ -169,16 +169,16 @@ Feasible, with honest labels. Stored locally (Room or DataStore); nothing leaves
 - hours left = current % (or band midpoint for levels) ÷ drain/h. rides left = hours left ÷ median ride duration (from the stored rides).
 - Label: "~N rides left · your last 6 rides".
 
-**Fallback (rated life):** typical runtime per device type. All values are **Hypothesis** from manufacturer claims as remembered, and must be checked before release:
+**Fallback (rated life):** typical runtime per device type, from manufacturer claims **checked 15.11.2026** (the lower figure where reviews measured less):
 
-| Device | Rated life (to verify) |
-|---|---|
-| Karoo 3 | ~12 h per charge |
-| Di2 12-speed main battery | ~1,000+ km per charge, varies with shifting |
-| Di2 wireless shifter coin cell (CR1632) | ~1.5 years |
-| Assioma Duo / Pro | ~50-60 h per charge |
-| Varia RTL515 radar + light | ~6 h solid light, ~16 h flash or radar only |
-| Garmin HRM-Pro (CR2032) | ~1 year at 1 h/day |
+| Device | Claim | Used |
+|---|---|---|
+| Karoo 3 | 15+ h per charge (35+ h battery save); testers 12-13 h | 12 h |
+| Di2 12-speed main battery (BT-DN300) | ~1,000 km per charge, more with little front shifting | 35 h |
+| Di2 wireless shifter coin cell (CR1632) | ~1.5 years | none |
+| Assioma Duo | 50+ h per charge; testers 53-60 h | 50 h |
+| Varia RTL515 radar + light (one battery) | 6 h solid, 8 h peloton, 16 h day flash | radar 6 h, light 6 h |
+| Garmin HRM-Pro (CR2032) | ~1 year at 1 h/day | none |
 
 Label: "under ~7 h left · rated life". When a learned rate exists it replaces the fallback, and the label changes.
 
@@ -246,7 +246,7 @@ Merging: a fresher exact % from a direct source wins over the Karoo level. The i
 | 2 | Repository + bands | `SavedDevices` flattened; band mapping; unit tests on milestone-0 fixtures. **Done 14.11.2026**: also Ki2 % (moved up from 8), RADAR/LIGHT split, and hide per device (moved up from 7) |
 | 3 | Overview screen | Pre/post variants in Compose, dark + light, matches mockup. **Pre-ride dark done 14.11.2026**: verdict ring, type icons tinted by band (like Karoo's Sensors list), battery glyphs, level word + % range, coin-cell wording, long-press to hide with undo; after a UX pass: compact healthy list, "Full" instead of NEW, devices outside the active profile dimmed and left out of the verdict. Post-ride variant done with milestone 4. Pin to top, and a fixed colour per sensor type on the badges (battery colour only on gauges). Light mode with a toggle at the bottom, remembered |
 | 4 | Ride hooks | Ride-end notification opens post-ride screen; recording-start alert; once per ride. **Built 14.11.2026, not yet seen on a real ride**: `RideHooks` in the extension service snapshots batteries at ride start and raises an `InRideAlert` if anything is red/orange; 20 s after ride end a `SystemNotification` (only when something is red/orange/yellow) opens the post-ride variant ("After the ride", Charge / Fine for now, per-device drop "−12 %" or "Full → OK"); opening a ride page while Idle gives one pre-ride notification per idle period; a power-on notification (extension bind at boot) when something is red/orange, **seen on the Karoo 15.11.2026**. Post-ride screen checked on the Karoo with a faked start snapshot. **Test rides on the Karoo 15.11.2026 (stationary, deleted):** power-on, pre-ride and ride-end notifications seen; ride-start snapshot saved. Ride-start `InRideAlert` **seen 15.11.2026** after a fix: its colours were ARGB values where the SDK takes `@ColorRes` IDs, which **crashes the Karoo ride app** (v0.9.0 bug, reproduced with a debug probe); now colour resources, sent 5 s after the start. Debug builds have `spike/AlertProbe` (`adb shell am broadcast -a io.github.goranceko.devicejuice.PROBE_ALERT`) to test alerts mid-ride. Pre-ride now waits 3 s and skips when recording has started, since opening a ride often auto-starts it |
-| 5 | Advice + estimates | Rules engine; RideLog; learned rate; rated-life fallback; labels. **Built 14.11.2026, learns from the next rides**: ride log of start/end battery and recording time (pauses excluded), last 30 rides on the device; learned %/h over the last 6 rides for exact sources (Karoo, Di2 via Ki2); rated-life fallback per type (Karoo 12 h, power 50 h, radar 8 h, light 6 h, shifting 35 h: still to verify); none for coin cells and HR. Labels "~3 rides left · your last 2 rides" / "~32 h left · rated life"; a learned estimate under a typical ride escalates one band. Post-ride advice "Charge tonight" |
+| 5 | Advice + estimates | Rules engine; RideLog; learned rate; rated-life fallback; labels. **Built 14.11.2026, learns from the next rides**: ride log of start/end battery and recording time (pauses excluded), last 30 rides on the device; learned %/h over the last 6 rides for exact sources (Karoo, Di2 via Ki2); rated-life fallback per type (Karoo 12 h, power 50 h, radar 6 h, light 6 h, shifting 35 h; **checked against specs 15.11.2026**: Karoo 3 claims 15+ h but testers get 12-13 h, Assioma 50+ h, Varia RTL515 6 h solid / 8 h peloton / 16 h day flash on one battery shared by radar and light, so radar 8 → 6 h, Di2 12-speed ~1,000 km ≈ 35 h); none for coin cells and HR. Labels "~3 rides left · your last 2 rides" / "~32 h left · rated life"; a learned estimate under a typical ride escalates one band. Post-ride advice "Charge tonight" |
 | 6 | In-ride field | 1×1 weakest + strip (Glance), plus the **full-page overview field** (`OverviewFieldDataType`, section 3.1 row 6): the whole device list as a data field, so it can sit on the first page of a profile and show before Start. **Full-page field built and seen on a ride page 15.11.2026** (`field/OverviewField`, "Battery overview"): verdict line, then one row per device in the active profile, worst first (type dot, part before device name, level or % in its band colour); rows follow the field height (up to 12), and the last row becomes "+N more" when they don't fit. The Karoo's page editor shows extension fields blank; they draw on the ride page. Workout profile's last page, renamed "Batteries", now holds only this field. **Built 14.11.2026 with plain RemoteViews (no Glance needed)**: "Weakest battery" (emptiest device in the profile, band-coloured, value autosized) and "Battery warning" strip (blank until something is red/orange). Both share the service's battery state with the ride hooks. **Seen in the field picker and on a ride page 15.11.2026** (Workout profile, then "Devices" page) |
 | 7 | Settings | Rename/hide, thresholds, toggles. **Built 14.11.2026**: Settings screen (link at the bottom of the overview): light mode; ride start / ride end / before-the-ride toggles; green/yellow/orange % thresholds in 5 % steps (exact % only, levels keep the fixed mapping), reset; hidden devices with Show per device; renamed devices with reset. Rename from the long-press menu (renames the device and all its parts) |
 | 8 | v2 precision | Ki2 source, then opt-in BLE. **Ki2 done in milestone 2. Opt-in BLE built 14.11.2026, not yet tried on a sensor**: Settings → "Exact % over Bluetooth (beta)" asks for BLUETOOTH_CONNECT (no scanning: Karoo's id of a BLE-paired device is its address); reads GATT 0x180F/0x2A19 per device (10 s timeout, then disconnect) when the app opens (at most every 2 min) and at ride start/end; a read newer than Karoo's level wins, shown "via Bluetooth". ANT+ devices (Assioma, Varia here) can't be matched to a Bluetooth address, so they keep Karoo's level |
@@ -271,8 +271,8 @@ If `SavedDevices` does not refresh at ride end: (a) re-subscribe after a short d
 | 3 | Are Assioma L and R separate entries? | **Answered (14.11.2026): no.** One device, one `RIGHT_SIDE_POWER` component; left pedal battery not exposed | Show one Assioma row |
 | 4 | Does `ActiveRidePage` fire while Idle (pre-ride trigger)? | **Answered (12.11.2026): yes**, on each page swipe before Start | none |
 | 5 | Di2 paired natively or via Ki2? | **Decided**: via Ki2 | none |
-| 6 | Assioma / HR strap on BLE or ANT+? Only BLE allows a real % | Open | Rider |
+| 6 | Assioma / HR strap on BLE or ANT+? Only BLE allows a real % | **Answered (15.11.2026):** Assioma, Varia and the Garmin HR strap are paired over ANT+, so they keep Karoo's level; only the Whoop (hidden) is on BLE | none |
 | 7 | Can one extension stream another extension's data type? | **Answered (14.11.2026): yes.** Ki2's shifting battery % streams to us | `Ki2Source` moves to v1 |
-| 8 | Rated-life values in 5.2 | **Hypothesis** | Check manufacturer specs |
+| 8 | Rated-life values in 5.2 | **Checked (15.11.2026)** against manufacturer specs and reviews; radar lowered from 8 h to 6 h | none |
 | 9 | Level-only estimates need several rides to learn and stay coarse | Known limitation | none |
 | 10 | Karoo OS updates could change `SavedDevices` contents | Risk | none |
