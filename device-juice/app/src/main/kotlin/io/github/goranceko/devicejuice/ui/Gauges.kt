@@ -42,6 +42,20 @@ fun segmentsOf(level: BatteryStatus?): Int = when (level) {
     BatteryStatus.INVALID, null -> 0
 }
 
+/** Lit segments for a row: an exact % uses the same ranges as the levels, so every gauge has 5 bars. */
+fun segmentsOf(r: BatteryReading): Int = when {
+    r.stale -> 0
+    r.percent != null -> when (r.percent) {
+        in 96..Int.MAX_VALUE -> 5
+        in 81..95 -> 4
+        in 46..80 -> 3
+        in 16..45 -> 2
+        in 1..15 -> 1
+        else -> 0
+    }
+    else -> segmentsOf(r.level)
+}
+
 fun valueText(r: BatteryReading): String = io.github.goranceko.devicejuice.model.Values.text(r)
 
 /** Short age for tight layouts: "just now", "42m ago", "3h ago", "5d ago", then "2 Jun". */
@@ -57,7 +71,7 @@ fun ageText(updatedAt: Long?, now: Long, date: (Long) -> String = { java.text.Si
     }
 }
 
-/** Horizontal battery: continuous fill for an exact %, 5 cells for a level. */
+/** Horizontal battery: 5 cells, lit by [segmentsOf]. */
 @Composable
 fun BatteryGlyph(r: BatteryReading, width: Dp = 34.dp, height: Dp = 16.dp) {
     val color = Palette.of(r.band)
@@ -71,11 +85,8 @@ fun BatteryGlyph(r: BatteryReading, width: Dp = 34.dp, height: Dp = 16.dp) {
         val pad = stroke + 1.5.dp.toPx()
         val inner = Size(body.width - 2 * pad + stroke, body.height - 2 * pad + stroke)
         val start = Offset(pad, pad)
-        if (r.percent != null) {
-            val w = inner.width * (r.percent.coerceIn(0, 100) / 100f)
-            drawRoundRect(color, start, Size(w.coerceAtLeast(2f), inner.height), CornerRadius(1.5.dp.toPx()))
-        } else {
-            val lit = if (r.stale) 0 else segmentsOf(r.level)
+        run {
+            val lit = segmentsOf(r)
             val gap = 1.5.dp.toPx()
             val cell = (inner.width - gap * 4) / 5
             repeat(5) { i ->

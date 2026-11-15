@@ -67,8 +67,8 @@ object FieldArt {
     @Synchronized
     fun gauge(r: BatteryReading, w: Int, h: Int): Bitmap {
         val color = Palette.of(r.band).toArgb()
-        val lit = if (r.stale) 0 else segmentsOf(r.level)
-        val key = "gauge:$color:${r.percent}:$lit:$w:$h:${Palette.light}"
+        val lit = segmentsOf(r)
+        val key = "gauge:$color:$lit:$w:$h:${Palette.light}"
         return cache.getOrPut(key) {
             val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
             val c = Canvas(bmp)
@@ -83,10 +83,7 @@ object FieldArt {
             val pad = stroke + h * 0.09f
             val inner = RectF(pad, pad, body.right - pad + stroke / 2, h - pad)
             val r2 = h * 0.06f
-            if (r.percent != null) {
-                val fw = (inner.width() * r.percent.coerceIn(0, 100) / 100f).coerceAtLeast(2f)
-                c.drawRoundRect(RectF(inner.left, inner.top, inner.left + fw, inner.bottom), r2, r2, solid)
-            } else {
+            run {
                 val gap = h * 0.09f
                 val cell = (inner.width() - gap * 4) / 5
                 repeat(5) { i ->

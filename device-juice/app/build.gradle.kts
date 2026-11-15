@@ -15,8 +15,8 @@ android {
         minSdk = 23
         targetSdk = 34
         // Keep in step with manifest.json (latestVersion / latestVersionCode); CI checks the tag against it.
-        versionCode = 13
-        versionName = "0.9.4"
+        versionCode = 14
+        versionName = "0.9.5"
     }
 
     // Private release key from CI secrets (env) or this Mac's local.properties (never committed):

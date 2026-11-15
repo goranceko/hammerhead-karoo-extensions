@@ -9,7 +9,7 @@ One Gradle project, one Android module per extension:
 
 | Folder | What | Status |
 |---|---|---|
-| [`device-juice/`](device-juice/) | **1Battery Juice** (formerly Device Juice): battery overview of every paired device, before and after the ride. See [PLAN.md](device-juice/PLAN.md) and [mockup.html](device-juice/mockup.html) | 0.9.3: milestones 0–9 built ([README](device-juice/README.md), [SPIKE.md](device-juice/SPIKE.md)) |
+| [`device-juice/`](device-juice/) | **1Battery Juice** (formerly Device Juice): battery overview of every paired device, before and after the ride. See [PLAN.md](device-juice/PLAN.md) and [mockup.html](device-juice/mockup.html) | 0.9.5: milestones 0–9 built ([README](device-juice/README.md), [SPIKE.md](device-juice/SPIKE.md)) |
 | `power-zone-bar/` | Apple Watch–style power zone bar | Not started |
 | `common/` | Shared UI and karoo-ext helpers | Not started |
 | `.github/workflows/` | Builds APKs into GitHub releases | `device-juice.yml`: debug APK + tests on push to main; release APK on `device-juice-v*` tags |

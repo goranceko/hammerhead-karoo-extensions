@@ -2,11 +2,11 @@
   "label": "1Battery Juice",
   "packageName": "io.github.goranceko.devicejuice",
   "latestApkUrl": "https://github.com/goranceko/hammerhead-karoo-extensions/releases/latest/download/device-juice.apk",
-  "latestVersion": "0.9.4",
-  "latestVersionCode": 13,
+  "latestVersion": "0.9.5",
+  "latestVersionCode": 14,
   "developer": "goranceko",
   "description": "Battery overview of every paired device, before and after the ride.",
-  "releaseNotes": "Now called 1Battery Juice. The Battery overview page looks like the app: a card for what needs attention, type badges, gauges and time left; devices not seen recently are left off. Levels read 100% / ≤80%. Renamed groupsets prefix their parts (\"SRAM Left shifter\"), the Karoo can be renamed, and the after-ride notification comes right away.",
+  "releaseNotes": "Every battery gauge has 5 bars, the Karoo too. Settings no longer lists renamed devices; rename or restore a name by long-pressing the device.",
   "tags": [
     "tools"
   ]
