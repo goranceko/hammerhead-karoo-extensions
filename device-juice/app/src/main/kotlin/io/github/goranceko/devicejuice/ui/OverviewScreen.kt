@@ -251,7 +251,6 @@ private fun AttentionCard(r: BatteryReading, now: Long, onHide: (BatteryReading)
                 Box(Modifier.width(3.dp).height(16.dp).clip(RoundedCornerShape(2.dp)).background(color))
                 Spacer(Modifier.width(8.dp))
                 Text(advice, color = Palette.fg, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                rangeOf(r.level)?.takeIf { r.percent == null }?.let { Text(it, color = Palette.faint, fontSize = 11.sp) }
             }
         }
         r.estimate?.let { e ->
@@ -327,7 +326,7 @@ private fun via(r: BatteryReading): String? = when (r.source) {
 private fun advice(r: BatteryReading): String? = if (LocalAfterRide.current != null) Advice.postRide(r) else Advice.preRide(r)
 
 /** Second line of a compact row: device name for parts (type once renamed, as the title has it), else the advice for grey rows, else type and age. */
-private fun caption(r: BatteryReading, now: Long, drops: Map<String, String>): String {
+internal fun caption(r: BatteryReading, now: Long, drops: Map<String, String> = emptyMap()): String {
     if (r.band == Band.GREY) return Advice.preRide(r) ?: kindLabel(r.kind)
     val drop = drops[r.id]
     val who = if (r.partName != null && !r.renamed) r.deviceName else kindLabel(r.kind)

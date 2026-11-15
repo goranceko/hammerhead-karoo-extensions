@@ -2,7 +2,6 @@ package io.github.goranceko.devicejuice.field
 
 import io.github.goranceko.devicejuice.model.Band
 import io.github.goranceko.devicejuice.model.BatteryReading
-import io.hammerhead.karooext.models.BatteryStatus
 
 /** What the in-ride fields show (PLAN.md 3.1 surface 5). Pure; [BatteryField] renders it. */
 object Weakest {
@@ -10,19 +9,12 @@ object Weakest {
     fun of(readings: List<BatteryReading>): BatteryReading? =
         readings.filter { it.enabled && it.band != Band.GREY }.minWithOrNull(compareBy({ it.band.ordinal }, { it.sortValue }, { it.name }))
 
-    /** Strip text, null (blank strip) while nothing is red or orange: "Left shifter · Low". */
+    /** Strip text, null (blank strip) while nothing is red or orange: "Left shifter · ≤45%". */
     fun stripText(readings: List<BatteryReading>): String? {
         val w = of(readings)?.takeIf { it.band == Band.RED || it.band == Band.ORANGE } ?: return null
         val others = readings.count { it.enabled && it.id != w.id && (it.band == Band.RED || it.band == Band.ORANGE) }
         return "${w.title} · ${value(w)}" + if (others > 0) " +$others" else ""
     }
 
-    fun value(r: BatteryReading): String = r.percent?.let { "$it%" } ?: when (r.level) {
-        BatteryStatus.NEW -> "Full"
-        BatteryStatus.GOOD -> "Good"
-        BatteryStatus.OK -> "OK"
-        BatteryStatus.LOW -> "Low"
-        BatteryStatus.CRITICAL -> "Critical"
-        else -> "–"
-    }
+    fun value(r: BatteryReading): String = io.github.goranceko.devicejuice.model.Values.text(r)
 }

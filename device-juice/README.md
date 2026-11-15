@@ -1,4 +1,7 @@
-# Device Juice
+# 1Battery Juice
+
+(Formerly 1Battery Juice. The "1" keeps it at the top of the Karoo's app list; the folder, package and
+release files keep the old `device-juice` / `devicejuice` names.)
 
 Battery overview of every paired device on the Hammerhead Karoo 3: shifting, power meter, radar,
 lights, heart rate and the Karoo itself. It answers "can I ride?" before the ride and "what do I charge
@@ -22,8 +25,8 @@ tonight?" after it.
 - **Rides left.** Exact sources (the Karoo, Di2 via Ki2) learn their drain from your last 6 rides:
   "~3 rides left · your last 6 rides". Other devices use a rated battery life per type:
   "~32 h left · rated life". Coin cells and heart-rate straps get no estimate.
-- **Data fields.** *Battery overview* is a full-page field: the verdict and every device, worst first,
-  so a ride page shows it all before you press Start. *Weakest battery* shows the emptiest device,
+- **Data fields.** *Battery overview* is a full-page field styled like the app: a card for what needs
+  attention, a card for the rest, each device with its type badge, time left, value and gauge. *Weakest battery* shows the emptiest device,
   coloured by level. *Battery warning* is a strip that stays blank until something is low.
 - **Settings.** Light mode, each alert on or off (power-on, before the ride, ride start, ride end), exact % over Bluetooth (beta), the % where each colour starts, hidden and renamed
   devices. Long-press a device on the overview to pin it to the top of its group, rename it or hide it.
@@ -36,7 +39,7 @@ Only devices in the active ride profile count for the verdict; the others sit di
    <https://github.com/goranceko/hammerhead-karoo-extensions/releases/latest>
 2. Long-press `device-juice.apk`, copy the link, and share it to the **Hammerhead Companion** app. The
    Karoo downloads and installs it.
-3. On the Karoo, open **Device Juice** from the app list once, so Karoo starts the extension.
+3. On the Karoo, open **1Battery Juice** from the app list once, so Karoo starts the extension.
 
 Updates: the Karoo checks `manifest.json` in the latest release and offers new versions under
 Extensions.
@@ -50,20 +53,20 @@ adb install -r device-juice.apk
 ## Add the data fields to a ride page
 
 Karoo → Profiles → your profile → a data page → tap a field → the extension (puzzle) filter →
-**Device Juice** → *Battery overview*, *Weakest battery* or *Battery warning*. Give *Battery overview* a
+**1Battery Juice** → *Battery overview*, *Weakest battery* or *Battery warning*. Give *Battery overview* a
 page of its own: the Karoo's page editor shows it blank, and it draws on the ride page.
 
 ## What the levels mean
 
-Most sensors only report a level to the Karoo, not a %. Device Juice shows the level word and its range:
+Most sensors only report a level to the Karoo, not a %. 1Battery Juice shows the top of the level's range ("≤80%"), and "100%" for Full:
 
-| Level | Range | Colour |
-|---|---|---|
-| Full | over 95 % | green |
-| Good | 81–95 % | green |
-| OK | 46–80 % | green |
-| Low | 16–45 % | orange |
-| Critical | 1–15 % | red |
+| Level | Range | Shown | Colour |
+|---|---|---|---|
+| Full | over 95 % | 100% | green |
+| Good | 81–95 % | ≤95% | green |
+| OK | 46–80 % | ≤80% | green |
+| Low | 16–45 % | ≤45% | orange |
+| Critical | 1–15 % | ≤15% | red |
 
 Exact % (the Karoo, Di2 via Ki2) uses the thresholds in Settings: green from 50 %, yellow from 30 %,
 orange from 15 %, red below.
@@ -92,8 +95,8 @@ Signing: releases are signed with a private key held in the `RELEASE_KEYSTORE_BA
 0.9.3). Local builds use the same key when `local.properties` sets `release.storeFile`,
 `release.storePassword`, `release.keyAlias` and `release.keyPassword`, so they can update an installed
 release. Without those, local builds use the shared key in `app/debug.keystore`; to install one over a
-release, uninstall Device Juice first.
+release, uninstall 1Battery Juice first.
 
 Upgrading from 0.9.2 or earlier: those were signed with the shared key, so the Karoo can't update them to
-0.9.3. Uninstall Device Juice, then install the latest release. Hidden, pinned and renamed devices and
+0.9.3. Uninstall 1Battery Juice, then install the latest release. Hidden, pinned and renamed devices and
 settings start fresh.

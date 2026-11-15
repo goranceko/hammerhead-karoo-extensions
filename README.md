@@ -9,7 +9,7 @@ One Gradle project, one Android module per extension:
 
 | Folder | What | Status |
 |---|---|---|
-| [`device-juice/`](device-juice/) | **Device Juice**: battery overview of every paired device, before and after the ride. See [PLAN.md](device-juice/PLAN.md) and [mockup.html](device-juice/mockup.html) | 0.9.0: milestones 0–7 and 9 built ([README](device-juice/README.md), [SPIKE.md](device-juice/SPIKE.md)) |
+| [`device-juice/`](device-juice/) | **1Battery Juice** (formerly Device Juice): battery overview of every paired device, before and after the ride. See [PLAN.md](device-juice/PLAN.md) and [mockup.html](device-juice/mockup.html) | 0.9.3: milestones 0–9 built ([README](device-juice/README.md), [SPIKE.md](device-juice/SPIKE.md)) |
 | `power-zone-bar/` | Apple Watch–style power zone bar | Not started |
 | `common/` | Shared UI and karoo-ext helpers | Not started |
 | `.github/workflows/` | Builds APKs into GitHub releases | `device-juice.yml`: debug APK + tests on push to main; release APK on `device-juice-v*` tags |
@@ -37,4 +37,4 @@ CI uses the `USERNAME` / `TOKEN` environment variables instead (the workflow pas
 ## Installing
 
 The Karoo 3 installs APKs from a share link: open the APK link from a GitHub release in the
-Hammerhead Companion app and share it to the Karoo. Details per extension: [Device Juice](device-juice/README.md#install).
+Hammerhead Companion app and share it to the Karoo. Details per extension: [1Battery Juice](device-juice/README.md#install).

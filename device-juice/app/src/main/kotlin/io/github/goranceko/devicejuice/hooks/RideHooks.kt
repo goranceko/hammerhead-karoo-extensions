@@ -179,7 +179,7 @@ class RideHooks(
                 id = id,
                 message = m.title,
                 subText = m.detail,
-                header = "Device Juice",
+                header = "1Battery Juice",
                 style = if (m.band == Band.RED) SystemNotification.Style.ERROR else SystemNotification.Style.EVENT,
                 action = "Open",
                 actionIntent = action,

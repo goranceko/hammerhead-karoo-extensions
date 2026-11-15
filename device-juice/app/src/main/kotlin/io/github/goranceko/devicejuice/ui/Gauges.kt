@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.goranceko.devicejuice.art.IconPaths
 import io.github.goranceko.devicejuice.model.Band
 import io.github.goranceko.devicejuice.model.BatteryReading
 import io.github.goranceko.devicejuice.model.DeviceKind
@@ -41,24 +42,7 @@ fun segmentsOf(level: BatteryStatus?): Int = when (level) {
     BatteryStatus.INVALID, null -> 0
 }
 
-/** The % range a Karoo level stands for (BatteryStatus.fromPercentage). */
-fun rangeOf(level: BatteryStatus?): String? = when (level) {
-    BatteryStatus.NEW -> "96–100 %"
-    BatteryStatus.GOOD -> "81–95 %"
-    BatteryStatus.OK -> "46–80 %"
-    BatteryStatus.LOW -> "16–45 %"
-    BatteryStatus.CRITICAL -> "1–15 %"
-    BatteryStatus.INVALID, null -> null
-}
-
-fun valueText(r: BatteryReading): String = r.percent?.let { "$it%" } ?: when (r.level) {
-    null, BatteryStatus.INVALID -> "–"
-    BatteryStatus.NEW -> "Full"
-    BatteryStatus.GOOD -> "Good"
-    BatteryStatus.OK -> "OK"
-    BatteryStatus.LOW -> "Low"
-    BatteryStatus.CRITICAL -> "Critical"
-}
+fun valueText(r: BatteryReading): String = io.github.goranceko.devicejuice.model.Values.text(r)
 
 /** Short age for tight layouts: "just now", "42m ago", "3h ago", "5d ago", then "2 Jun". */
 fun ageText(updatedAt: Long?, now: Long, date: (Long) -> String = { java.text.SimpleDateFormat("d MMM", java.util.Locale.getDefault()).format(java.util.Date(it)) }): String? {
@@ -135,8 +119,8 @@ fun LevelRing(r: BatteryReading?, band: Band, size: Dp, content: @Composable () 
 fun KindBadge(r: BatteryReading, size: Dp = 40.dp) {
     val icon = Icons.of(r)
     // Groupsets get solid badges: a whole-system device (Di2) in blue, the parts of a multi-part groupset (AXS) in red.
-    val groupsetPart = r.partName != null && (r.kind == DeviceKind.SHIFTING || r.kind == DeviceKind.SHIFTER_COIN)
-    val solid = icon == Icons.groupset || groupsetPart
+    val groupsetPart = IconPaths.groupsetPart(r)
+    val solid = IconPaths.solid(r)
     val color = if (groupsetPart) Palette.axsRed else Palette.accentOf(r.kind)
     Box(Modifier.size(size)) {
         Box(

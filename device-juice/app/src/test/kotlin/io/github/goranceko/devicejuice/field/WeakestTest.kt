@@ -20,7 +20,7 @@ class WeakestTest {
 
     @Test
     fun `strip names the weakest and counts the other urgent ones`() {
-        assertEquals("Left shifter · Low", Weakest.stripText(rows(90)))
+        assertEquals("Left shifter · ≤45%", Weakest.stripText(rows(90)))
         assertEquals("Karoo · 5% +1", Weakest.stripText(rows(5)))
     }
 
@@ -28,6 +28,6 @@ class WeakestTest {
     fun `strip is blank while nothing is red or orange`() {
         val calm = rows(90).filter { it.band == Band.GREEN }
         assertNull(Weakest.stripText(calm))
-        assertEquals("Full", Weakest.value(calm.first { it.name == "Power 10005" }))
+        assertEquals("100%", Weakest.value(calm.first { it.name == "Power 10005" }))
     }
 }
