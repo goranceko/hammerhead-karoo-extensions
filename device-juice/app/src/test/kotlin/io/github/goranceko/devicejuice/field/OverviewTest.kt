@@ -11,7 +11,7 @@ import org.junit.Test
 class OverviewTest {
     private val f = Fixtures.load("run2-midride")
     private val rows = buildReadings(f.savedDevices, 90, null, f.capturedAt)
-    private val active = rows.filter { it.enabled }
+    private val active = rows.filter { it.enabled && it.band != Band.GREY }
 
     @Test
     fun `shows only devices in the active profile, worst first, with the verdict when there is space`() {
@@ -53,5 +53,12 @@ class OverviewTest {
         assertEquals(1, Overview.rowsThatFit(40f))
         assertEquals(4, Overview.rowsThatFit(Overview.PAD_DP + 2 * Overview.CARD_DP + 4 * Overview.ROW_DP))
         assertEquals(Overview.MAX_ROWS, Overview.rowsThatFit(2000f))
+    }
+
+    @Test
+    fun `devices not seen recently are left out`() {
+        val m = Overview.of(rows, 2000f)
+        assertTrue(rows.any { it.enabled && it.band == Band.GREY })
+        assertTrue(m.rows.none { it.band == Band.GREY })
     }
 }

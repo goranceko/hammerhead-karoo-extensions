@@ -8,7 +8,7 @@ import io.github.goranceko.devicejuice.model.Verdicts
 /** What the full-page overview field shows (PLAN.md 3.1 surface 6). Pure; [OverviewField] renders it. */
 object Overview {
     /**
-     * [attention] (red, orange, yellow) and [rest] (green, then not seen recently) as the app groups them; [header]
+     * [attention] (red, orange, yellow) and [rest] (green) as the app groups them, without devices not seen recently; [header]
      * shows the verdict line when there is room (the attention card says the same); [more] devices didn't fit.
      */
     data class Model(val verdict: Verdict, val attention: List<BatteryReading>, val rest: List<BatteryReading>, val more: Int, val header: Boolean) {
@@ -21,8 +21,9 @@ object Overview {
      * fit and "+N more".
      */
     fun of(readings: List<BatteryReading>, heightDp: Float): Model {
-        val active = readings.filter { it.enabled }
-        val verdict = Verdicts.of(active)
+        // Grey rows (no level, or nothing heard for a week) stay in the app's "Not seen recently" list, not on the ride page.
+        val active = readings.filter { it.enabled && it.band != Band.GREY }
+        val verdict = Verdicts.of(readings.filter { it.enabled })
         val attention = active.filter { it.band in ATTENTION }
         val cards = if (attention.isEmpty() || attention.size == active.size) 1 else 2
         val header = PAD_DP + HEADER_DP + cards * CARD_DP + active.size * ROW_DP <= heightDp
