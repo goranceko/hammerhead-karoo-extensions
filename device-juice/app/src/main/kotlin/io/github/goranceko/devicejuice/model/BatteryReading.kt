@@ -30,13 +30,15 @@ data class BatteryReading(
     val deviceName: String = name,
     /** "Left shifter" for a component row, null otherwise. */
     val partName: String? = null,
+    /** Rider renamed the device: for a part, that name goes in front ("SRAM Left shifter"). */
+    val renamed: Boolean = false,
     /** Rider pinned it: first in its group. */
     val pinned: Boolean = false,
     /** How long it will last (milestone 5), null when unknown. */
     val estimate: Estimate? = null,
 ) {
-    /** Short label for tight layouts: the part name, or the device name. */
-    val title: String get() = partName ?: deviceName
+    /** Short label for tight layouts: the part name ("SRAM Left shifter" once the rider renamed the device), or the device name. */
+    val title: String get() = partName?.let { if (renamed) "$deviceName $it" else it } ?: deviceName
 
     /** For sentences: "AXS System 2169 left shifter". */
     val phrase: String get() = partName?.let { "$deviceName ${it.lowercase()}" } ?: deviceName

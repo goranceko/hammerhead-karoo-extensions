@@ -170,4 +170,17 @@ class ReadingsTest {
         // Pinning never lifts a device above a more urgent band.
         assertEquals(Band.ORANGE, rows.first().band)
     }
+
+    @Test
+    fun `a renamed groupset puts its name in front of each part`() {
+        val f = Fixtures.load("run2-midride")
+        val rows = buildReadings(f.savedDevices, null, null, f.capturedAt, names = mapOf("10006-34-5" to "SRAM"))
+        val axs = rows.filter { it.deviceId == "10006-34-5" }
+        assertEquals(setOf("SRAM Front derailleur", "SRAM Rear derailleur", "SRAM Left shifter", "SRAM Right shifter"), axs.map { it.title }.toSet())
+        assertEquals("SRAM left shifter", axs.single { it.componentKey == "LEFT_SHIFTER" }.phrase)
+        // Not renamed: the part alone, the device on its own line.
+        val plain = buildReadings(f.savedDevices, null, null, f.capturedAt).single { it.componentKey == "LEFT_SHIFTER" }
+        assertEquals("Left shifter", plain.title)
+        assertFalse(plain.renamed)
+    }
 }

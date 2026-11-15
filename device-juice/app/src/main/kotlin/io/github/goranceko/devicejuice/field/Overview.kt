@@ -23,8 +23,15 @@ object Overview {
         return Model(verdict, shown, active.size - shown.size)
     }
 
-    /** Part first ("Left shifter · AXS System 2169"), so a cut-off name loses the device name, not the part. */
-    fun label(r: BatteryReading): String = r.partName?.let { "$it · ${r.deviceName}" } ?: r.name
+    /**
+     * Part first ("Left shifter · AXS System 2169"), so a cut-off name loses the device name, not the part.
+     * A renamed groupset reads as the rider named it: "SRAM Left shifter".
+     */
+    fun label(r: BatteryReading): String = when {
+        r.partName == null -> r.name
+        r.renamed -> r.title
+        else -> "${r.partName} · ${r.deviceName}"
+    }
 
     const val MAX_ROWS = 12
     private const val HEADER_DP = 58f

@@ -231,7 +231,7 @@ private fun AttentionCard(r: BatteryReading, now: Long, onHide: (BatteryReading)
                     Text(r.title, color = Palette.fg, fontSize = 15.sp, fontWeight = FontWeight.Bold, fontFamily = Condensed, maxLines = 2, lineHeight = 17.sp, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                     if (r.pinned) PinMark()
                 }
-                if (r.partName != null) Text(r.deviceName, color = Palette.sub, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (r.partName != null && !r.renamed) Text(r.deviceName, color = Palette.sub, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(subtitle(r, now, LocalAfterRide.current?.drops.orEmpty()), color = Palette.faint, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Spacer(Modifier.width(8.dp))
@@ -280,7 +280,7 @@ private fun CompactList(rows: List<BatteryReading>, now: Long, onHide: (BatteryR
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(r.title, color = Palette.fg, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        Text(r.title, color = Palette.fg, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, lineHeight = 16.sp, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                         if (r.pinned) PinMark()
                     }
                     Text(caption(r, now, LocalAfterRide.current?.drops.orEmpty()), color = Palette.faint, fontSize = 11.sp, lineHeight = 13.sp, maxLines = if (r.band == Band.GREY) 2 else 1, overflow = TextOverflow.Ellipsis)
@@ -326,11 +326,11 @@ private fun via(r: BatteryReading): String? = when (r.source) {
 @Composable
 private fun advice(r: BatteryReading): String? = if (LocalAfterRide.current != null) Advice.postRide(r) else Advice.preRide(r)
 
-/** Second line of a compact row: device name for parts, else the advice for grey rows, else type and age. */
+/** Second line of a compact row: device name for parts (type once renamed, as the title has it), else the advice for grey rows, else type and age. */
 private fun caption(r: BatteryReading, now: Long, drops: Map<String, String>): String {
     if (r.band == Band.GREY) return Advice.preRide(r) ?: kindLabel(r.kind)
     val drop = drops[r.id]
-    val who = if (r.partName != null) r.deviceName else kindLabel(r.kind)
+    val who = if (r.partName != null && !r.renamed) r.deviceName else kindLabel(r.kind)
     val age = if (r.source == ReadingSource.KAROO) null else ageText(r.updatedAt, now)
     return listOfNotNull(who, via(r), drop ?: r.estimate?.amount ?: age).joinToString(" · ")
 }

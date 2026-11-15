@@ -43,4 +43,10 @@ class OverviewTest {
         val whole = rows.first { it.partName == null }
         assertEquals(whole.name, Overview.label(whole))
     }
+
+    @Test
+    fun `a renamed groupset part reads as named`() {
+        val renamed = buildReadings(f.savedDevices, 90, null, f.capturedAt, names = mapOf("10006-34-5" to "SRAM"))
+        assertEquals("SRAM Left shifter", Overview.label(renamed.single { it.componentKey == "LEFT_SHIFTER" }))
+    }
 }

@@ -28,7 +28,8 @@ private const val KI2_DEVICE_PREFIX = "ki2::"
  * - A Ki2 % newer than the Karoo level wins for Ki2 devices without components; so does a Bluetooth % ([ble]).
  * - Readings older than [Bands.STALE_AFTER_MS] are grey and `stale`.
  * - [hidden] holds row ids; a device id also hides all its components.
- * - [names] renames devices (by device id, components included); [thresholds] set the % bands.
+ * - [names] renames devices (by device id, components included; a renamed groupset's parts read "SRAM Left shifter");
+ *   [thresholds] set the % bands.
  * - [pinned] works the same way and puts those rows first within their band.
  * - Each row gets an [Estimate] from [log]. A learned estimate shorter than a typical ride moves the row
  *   one band more urgent (PLAN.md 5.1, last rule).
@@ -65,7 +66,7 @@ fun buildReadings(
                     id = "${device.id}/$key", deviceId = device.id, componentKey = key,
                     name = "$deviceName · ${humanise(key)}", kind = DeviceKinds.ofComponent(key, kind),
                     detail = detail, enabled = device.enabled, now = now,
-                ).copy(deviceName = deviceName, partName = humanise(key))
+                ).copy(deviceName = deviceName, partName = humanise(key), renamed = device.id in names)
             }
         } else {
             val base = levelReading(
