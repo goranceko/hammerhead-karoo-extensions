@@ -17,7 +17,6 @@ import io.github.goranceko.devicejuice.spike.RidePhase
 import io.github.goranceko.devicejuice.spike.RideTransition
 import io.github.goranceko.devicejuice.spike.RideTransitionDetector
 import io.github.goranceko.devicejuice.spike.toPhase
-import io.github.goranceko.devicejuice.ui.theme.Palette
 import io.hammerhead.karooext.KarooSystemService
 import io.hammerhead.karooext.models.ActiveRidePage
 import io.hammerhead.karooext.models.InRideAlert
@@ -32,7 +31,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import io.github.goranceko.devicejuice.model.DeviceKind
-import androidx.compose.ui.graphics.toArgb
 
 /**
  * Milestone 4: ride hooks, run from the extension service.
@@ -99,18 +97,32 @@ class RideHooks(
         preRideShown = true // no pre-ride nag once riding
         scope.launch { readBle() }
         prefs.edit().putString(KEY_START, RideMessages.encode(RideMessages.snapshot(active))).apply()
-        val m = RideMessages.rideStart(active)?.takeIf { settings.get().rideStartAlert } ?: return
-        karoo.dispatch(
-            InRideAlert(
-                id = "devicejuice-ride-start",
-                icon = R.drawable.ic_device_juice,
-                title = m.title,
-                detail = m.detail,
-                autoDismissMs = 15_000,
-                backgroundColor = Palette.of(m.band).toArgb(),
-                textColor = Palette.bg.toArgb(),
-            ),
-        )
+        val m = RideMessages.rideStart(active)?.takeIf { settings.get().rideStartAlert }
+        Log.i(TAG, "ride start: ${active.size} active, alert=${m?.title}")
+        if (m == null) return
+        // Karoo drops an alert sent while the ride screen is still loading, so wait until it is up.
+        scope.launch {
+            delay(ALERT_DELAY_MS)
+            if (rides.phase != RidePhase.RECORDING) return@launch
+            karoo.dispatch(
+                InRideAlert(
+                    id = "devicejuice-ride-start",
+                    icon = R.drawable.ic_device_juice,
+                    title = m.title,
+                    detail = m.detail,
+                    autoDismissMs = 15_000,
+                    backgroundColor = alertColor(m.band),
+                    textColor = R.color.alert_text,
+                ),
+            )
+        }
+    }
+
+    /** [InRideAlert] takes colour resource IDs (@ColorRes); a raw ARGB value makes Karoo drop the alert. */
+    private fun alertColor(band: Band): Int = when (band) {
+        Band.RED -> R.color.alert_red
+        Band.YELLOW -> R.color.alert_yellow
+        else -> R.color.alert_orange
     }
 
     private fun now() = System.currentTimeMillis()
@@ -152,10 +164,15 @@ class RideHooks(
     private fun onPreRide() {
         val m = RideMessages.preRide(active)?.takeIf { settings.get().preRideNotice } ?: return
         preRideShown = true
-        notify("devicejuice-pre-ride", m, ACTION_MAIN)
+        // Opening a ride often starts recording a moment later; the ride-start alert covers that case.
+        scope.launch {
+            delay(PRE_RIDE_DELAY_MS)
+            if (rides.phase == RidePhase.IDLE) notify("devicejuice-pre-ride", m, ACTION_MAIN)
+        }
     }
 
     private fun notify(id: String, m: RideMessages.Message, action: String) {
+        Log.i(TAG, "notify $id: ${m.title}")
         karoo.dispatch(
             SystemNotification(
                 id = id,
@@ -171,6 +188,8 @@ class RideHooks(
 
     companion object {
         private const val TAG = "DeviceJuice"
+        private const val ALERT_DELAY_MS = 5_000L
+        private const val PRE_RIDE_DELAY_MS = 3_000L
         const val PREFS = "device_juice"
         const val KEY_START = "ride_start_snapshot"
         const val KEY_END_AT = "ride_end_at"

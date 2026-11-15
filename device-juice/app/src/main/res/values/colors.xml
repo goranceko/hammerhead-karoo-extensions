@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- In-ride alert colours. InRideAlert takes colour resource IDs, not ARGB values. Match Palette's dark ride mode. -->
+    <color name="alert_red">#FFFF4A3D</color>
+    <color name="alert_orange">#FFFF8A1F</color>
+    <color name="alert_yellow">#FFF2CF2C</color>
+    <color name="alert_text">#FF090B0A</color>
+</resources>
