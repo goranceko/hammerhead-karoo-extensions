@@ -2,11 +2,11 @@
   "label": "Device Juice",
   "packageName": "io.github.goranceko.devicejuice",
   "latestApkUrl": "https://github.com/goranceko/hammerhead-karoo-extensions/releases/latest/download/device-juice.apk",
-  "latestVersion": "0.9.1",
-  "latestVersionCode": 10,
+  "latestVersion": "0.9.2",
+  "latestVersionCode": 11,
   "developer": "goranceko",
   "description": "Battery overview of every paired device, before and after the ride.",
-  "releaseNotes": "Fixes the ride-start alert crashing the Karoo ride app when a battery is low. The before-the-ride notification no longer repeats when a ride starts right away.",
+  "releaseNotes": "New Battery overview data field: the verdict and every device, worst first, on a ride page of its own. Radar battery estimate lowered to match the Varia rated life.",
   "tags": [
     "tools"
   ]
